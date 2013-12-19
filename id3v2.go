@@ -5,11 +5,36 @@ package id3
 
 import (
 	"fmt"
+	"io"
+)
+
+const (
+	HeaderSize = 10
 )
 
 type Header interface {
 	Version() string
 	Size() int
+}
+
+func NewHeader(reader io.Reader) Header {
+	data := make([]byte, HeaderSize)
+	n, err := io.ReadFull(reader, data)
+	if n < HeaderSize || err != nil || string(data[:3]) != "ID3" {
+		return nil
+	}
+
+	size, err := synchint(data[6:])
+	if err != nil {
+		return nil
+	}
+
+	return &Head{
+		version:  data[3],
+		revision: data[4],
+		flags:    data[5],
+		size:     size,
+	}
 }
 
 type Head struct {
