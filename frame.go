@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 package id3
 
+import (
+	"bytes"
+)
+
 const (
 	FrameHeaderSize = 10
 )
@@ -102,6 +106,49 @@ func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
 		return nil
 	}
+
+	return f
+}
+
+type ImageFrame struct {
+	FrameHead
+	DataFrame
+	Encoding    string
+	MIMEType    string
+	PictureType byte
+	Description string
+}
+
+func NewImageFrame(head FrameHead, data []byte) Framer {
+	f := &ImageFrame{FrameHead: head}
+
+	var err error
+	encodingIndex := data[0]
+
+	f.Encoding = encodingForIndex(encodingIndex)
+
+	buffer := bytes.NewBuffer(data[1:])
+	if f.MIMEType, err = buffer.ReadString(0); err != nil {
+		return nil
+	}
+
+	if f.PictureType, err = buffer.ReadByte(); err != nil {
+		return nil
+	}
+
+	beginIndex := 1 + len(f.MIMEType) + 1
+	var cutoff int
+	if i := afterNullIndex(data[beginIndex:], f.Encoding); i < 0 {
+		return nil
+	} else {
+		cutoff = beginIndex + i
+	}
+
+	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[beginIndex:cutoff])); err != nil {
+		return nil
+	}
+
+	f.Data = data[cutoff:]
 
 	return f
 }
