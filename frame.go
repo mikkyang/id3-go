@@ -21,6 +21,7 @@ type Framer interface {
 	Id() string
 	Size() int
 	String() string
+	Bytes() []byte
 }
 
 type FrameHead struct {
@@ -38,6 +39,17 @@ func (h FrameHead) Size() int {
 	return int(h.size)
 }
 
+func (h FrameHead) Bytes() []byte {
+	bytes := make([]byte, FrameHeaderSize)
+
+	copy(bytes[:4], []byte(h.id))
+	copy(bytes[4:8], intbytes(h.size, NormByteLength))
+	bytes[8] = h.statusFlags
+	bytes[9] = h.formatFlags
+
+	return bytes
+}
+
 type DataFrame struct {
 	FrameHead
 	Data []byte
@@ -49,6 +61,10 @@ func NewDataFrame(head FrameHead, data []byte) Framer {
 
 func (f DataFrame) String() string {
 	return "<binary data>"
+}
+
+func (f DataFrame) Bytes() []byte {
+	return append(f.FrameHead.Bytes(), f.Data...)
 }
 
 type TextFrame struct {
@@ -73,6 +89,21 @@ func NewTextFrame(head FrameHead, data []byte) Framer {
 
 func (f TextFrame) String() string {
 	return f.Text
+}
+
+func (f TextFrame) Bytes() []byte {
+	bytes := make([]byte, f.Size())
+
+	encodingIndex := indexForEncoding(f.Encoding)
+	encodedString, err := Encoders[encodingIndex].ConvertString(f.Text)
+	if err != nil {
+		return bytes
+	}
+
+	bytes[0] = encodingIndex
+	copy(bytes[1:], []byte(encodedString))
+
+	return append(f.FrameHead.Bytes(), bytes...)
 }
 
 type DescTextFrame struct {
@@ -107,6 +138,28 @@ func NewDescTextFrame(head FrameHead, data []byte) Framer {
 	return f
 }
 
+func (f DescTextFrame) Bytes() []byte {
+	bytes := make([]byte, f.Size())
+
+	encodingIndex := indexForEncoding(f.Encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	if err != nil {
+		return bytes
+	}
+	encodedText, err := Encoders[encodingIndex].ConvertString(f.Text)
+	if err != nil {
+		return bytes
+	}
+
+	bytes[0] = encodingIndex
+	index := 1
+	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
+	index += len(encodedDescription)
+	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
+
+	return append(f.FrameHead.Bytes(), bytes...)
+}
+
 type UnsynchTextFrame struct {
 	FrameHead
 	DescTextFrame
@@ -139,6 +192,29 @@ func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	}
 
 	return f
+}
+
+func (f UnsynchTextFrame) Bytes() []byte {
+	bytes := make([]byte, f.Size())
+
+	encodingIndex := indexForEncoding(f.Encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	if err != nil {
+		return bytes
+	}
+	encodedText, err := Encoders[encodingIndex].ConvertString(f.Text)
+	if err != nil {
+		return bytes
+	}
+
+	bytes[0] = encodingIndex
+	copy(bytes[1:4], []byte(f.Language))
+	index := 4
+	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
+	index += len(encodedDescription)
+	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
+
+	return append(f.FrameHead.Bytes(), bytes...)
 }
 
 type ImageFrame struct {
@@ -182,4 +258,26 @@ func NewImageFrame(head FrameHead, data []byte) Framer {
 	f.Data = data[cutoff:]
 
 	return f
+}
+
+func (f ImageFrame) Bytes() []byte {
+	bytes := make([]byte, f.Size())
+
+	encodingIndex := indexForEncoding(f.Encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	if err != nil {
+		return bytes
+	}
+
+	bytes[0] = encodingIndex
+	index := 1
+	copy(bytes[index:index+len(f.MIMEType)], []byte(f.MIMEType))
+	index += len(f.MIMEType)
+	bytes[index] = f.PictureType
+	index += 1
+	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
+	index += len(encodedDescription)
+	copy(bytes[index:index+len(f.Data)], f.Data)
+
+	return append(f.FrameHead.Bytes(), bytes...)
 }
