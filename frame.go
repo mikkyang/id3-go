@@ -75,10 +75,41 @@ func (f TextFrame) String() string {
 	return f.Text
 }
 
-type UnsynchTextFrame struct {
+type DescTextFrame struct {
 	FrameHead
 	TextFrame
-	Description       string
+	Description string
+}
+
+func NewDescTextFrame(head FrameHead, data []byte) Framer {
+	f := &DescTextFrame{FrameHead: head}
+
+	var err error
+	encodingIndex := data[0]
+
+	f.Encoding = encodingForIndex(encodingIndex)
+
+	cutoff := 1
+	if i := afterNullIndex(data[1:], f.Encoding); i < 0 {
+		return nil
+	} else {
+		cutoff += i
+	}
+
+	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[1:cutoff])); err != nil {
+		return nil
+	}
+
+	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
+		return nil
+	}
+
+	return f
+}
+
+type UnsynchTextFrame struct {
+	FrameHead
+	DescTextFrame
 	Language          string
 	ContentDescriptor string
 }
