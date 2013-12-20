@@ -46,3 +46,27 @@ func NewDataFrame(head FrameHead, data []byte) Framer {
 func (f DataFrame) String() string {
 	return "<binary data>"
 }
+
+type TextFrame struct {
+	FrameHead
+	Encoding string
+	Text     string
+}
+
+func NewTextFrame(head FrameHead, data []byte) Framer {
+	var err error
+	f := &TextFrame{FrameHead: head}
+
+	encodingIndex := data[0]
+	f.Encoding = encodingForIndex(data[0])
+
+	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[1:])); err != nil {
+		return nil
+	}
+
+	return f
+}
+
+func (f TextFrame) String() string {
+	return f.Text
+}
