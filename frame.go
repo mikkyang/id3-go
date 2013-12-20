@@ -70,3 +70,38 @@ func NewTextFrame(head FrameHead, data []byte) Framer {
 func (f TextFrame) String() string {
 	return f.Text
 }
+
+type UnsynchTextFrame struct {
+	FrameHead
+	TextFrame
+	Description       string
+	Language          string
+	ContentDescriptor string
+}
+
+func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
+	var err error
+	f := &UnsynchTextFrame{FrameHead: head}
+
+	encodingIndex := data[0]
+
+	f.Encoding = encodingForIndex(encodingIndex)
+	f.Language = string(data[1:4])
+
+	cutoff := 4
+	if i := afterNullIndex(data[4:], f.Encoding); i < 0 {
+		return nil
+	} else {
+		cutoff += i
+	}
+
+	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[4:cutoff])); err != nil {
+		return nil
+	}
+
+	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
+		return nil
+	}
+
+	return f
+}
