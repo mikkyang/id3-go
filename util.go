@@ -63,6 +63,26 @@ func normint(buf []byte) (i int32, err error) {
 	return
 }
 
+func intbytes(n int32, base uint) []byte {
+	mask := int32(1<<base - 1)
+	bytes := make([]byte, BytesPerInt)
+
+	for i, _ := range bytes {
+		bytes[len(bytes)-i-1] = byte(n & mask)
+		n >>= base
+	}
+
+	return bytes
+}
+
+func synchbytes(n int32) []byte {
+	return intbytes(n, SynchByteLength)
+}
+
+func normbytes(n int32) []byte {
+	return intbytes(n, NormByteLength)
+}
+
 func encodingForIndex(b byte) string {
 	encodingIndex := int(b)
 	if encodingIndex < 0 || encodingIndex > len(EncodingMap) {
