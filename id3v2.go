@@ -45,6 +45,21 @@ func NewTag(reader io.Reader) *Tag {
 	return t
 }
 
+func (t Tag) Bytes() []byte {
+	data := make([]byte, t.Size())
+
+	index := 0
+	for _, v := range t.Frames {
+		for _, f := range v {
+			size := FrameHeaderSize + f.Size()
+			copy(data[index:index+size], f.Bytes())
+			index += size
+		}
+	}
+
+	return append(t.Header.Bytes(), data...)
+}
+
 type Header interface {
 	Version() string
 	Size() int
