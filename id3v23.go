@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 package id3
 
+import (
+	"io"
+)
+
 var (
 	V3FrameTypeMap = map[string]FrameType{
 		"AENC": FrameType{id: "AENC", description: "Audio encryption", constructor: NewDataFrame},
@@ -81,3 +85,35 @@ var (
 		"WXXX": FrameType{id: "WXXX", description: "User defined URL link frame", constructor: NewDataFrame},
 	}
 )
+
+func NewV3Frame(reader io.Reader) Framer {
+	data := make([]byte, FrameHeaderSize)
+	if n, err := io.ReadFull(reader, data); n < FrameHeaderSize || err != nil {
+		return nil
+	}
+
+	id := string(data[:4])
+	t, ok := V3FrameTypeMap[id]
+	if !ok {
+		return nil
+	}
+
+	size, err := normint(data[4:8])
+	if err != nil {
+		return nil
+	}
+
+	h := FrameHead{
+		FrameType:   t,
+		statusFlags: data[8],
+		formatFlags: data[9],
+		size:        size,
+	}
+
+	frameData := make([]byte, size)
+	if n, err := io.ReadFull(reader, frameData); n < int(size) || err != nil {
+		return nil
+	}
+
+	return t.constructor(h, frameData)
+}
