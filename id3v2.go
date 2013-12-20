@@ -48,6 +48,7 @@ func NewTag(reader io.Reader) *Tag {
 type Header interface {
 	Version() string
 	Size() int
+	Bytes() []byte
 }
 
 func NewHeader(reader io.Reader) Header {
@@ -82,4 +83,16 @@ func (h Head) Version() string {
 
 func (h Head) Size() int {
 	return int(h.size)
+}
+
+func (h Head) Bytes() []byte {
+	data := make([]byte, HeaderSize)
+
+	copy(data[:3], []byte("ID3"))
+	copy(data[6:], synchbytes(h.size))
+	data[3] = h.version
+	data[4] = h.revision
+	data[5] = h.flags
+
+	return data
 }
