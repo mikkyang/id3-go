@@ -12,6 +12,39 @@ const (
 	HeaderSize = 10
 )
 
+type Tag struct {
+	Header
+	Frames map[string][]Framer
+}
+
+func NewTag(reader io.Reader) *Tag {
+	t := &Tag{NewHeader(reader), make(map[string][]Framer)}
+	if t.Header == nil {
+		return nil
+	}
+
+	var frame Framer
+	for size := t.Header.Size(); size > 0; {
+		switch t.Header.Version() {
+		case "2.3":
+			frame = NewV3Frame(reader)
+		default:
+			frame = NewV3Frame(reader)
+		}
+
+		if frame == nil {
+			break
+		}
+
+		id := frame.Id()
+		t.Frames[id] = append(t.Frames[id], frame)
+
+		size -= frame.Size()
+	}
+
+	return t
+}
+
 type Header interface {
 	Version() string
 	Size() int
