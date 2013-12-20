@@ -4,6 +4,7 @@
 package id3
 
 import (
+	"bytes"
 	"errors"
 	iconv "github.com/djimenez/iconv-go"
 )
@@ -13,6 +14,7 @@ const (
 	SynchByteLength = 7
 	NormByteLength  = 8
 	NativeEncoding  = "UTF-8"
+	UTF16NullLength = 2
 )
 
 var (
@@ -78,4 +80,26 @@ func indexForEncoding(e string) byte {
 	}
 
 	return 0
+}
+
+func afterNullIndex(data []byte, encoding string) int {
+	if encoding == "UTF-16" || encoding == "UTF-16BE" {
+		limit, byteCount := len(data), UTF16NullLength
+		null := bytes.Repeat([]byte{0x0}, byteCount)
+
+		for i, _ := range data[:limit/byteCount] {
+			atIndex := byteCount * i
+			afterIndex := atIndex + byteCount
+
+			if bytes.Equal(data[atIndex:afterIndex], null) {
+				return afterIndex
+			}
+		}
+	} else {
+		if index := bytes.IndexByte(data, 0x00); index >= 0 {
+			return index + 1
+		}
+	}
+
+	return -1
 }
