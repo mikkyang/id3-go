@@ -5,13 +5,33 @@ package id3
 
 import (
 	"errors"
+	iconv "github.com/djimenez/iconv-go"
 )
 
 const (
 	BytesPerInt     = 4
 	SynchByteLength = 7
 	NormByteLength  = 8
+	NativeEncoding  = "UTF-8"
 )
+
+var (
+	EncodingMap = [...]string{
+		"ISO-8859-1",
+		"UTF-16",
+		"UTF-16BE",
+		"ISO-8859-1",
+	}
+	Decoders = make([]*iconv.Converter, len(EncodingMap))
+	Encoders = make([]*iconv.Converter, len(EncodingMap))
+)
+
+func init() {
+	for i, e := range EncodingMap {
+		Decoders[i], _ = iconv.NewConverter(e, NativeEncoding)
+		Encoders[i], _ = iconv.NewConverter(NativeEncoding, e)
+	}
+}
 
 func byteint(buf []byte, base uint) (i int32, err error) {
 	if len(buf) != BytesPerInt {
@@ -39,4 +59,23 @@ func synchint(buf []byte) (i int32, err error) {
 func normint(buf []byte) (i int32, err error) {
 	i, err = byteint(buf, NormByteLength)
 	return
+}
+
+func encodingForIndex(b byte) string {
+	encodingIndex := int(b)
+	if encodingIndex < 0 || encodingIndex > len(EncodingMap) {
+		encodingIndex = 0
+	}
+
+	return EncodingMap[encodingIndex]
+}
+
+func indexForEncoding(e string) byte {
+	for i, v := range EncodingMap {
+		if v == e {
+			return byte(i)
+		}
+	}
+
+	return 0
 }
