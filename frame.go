@@ -5,6 +5,7 @@ package id3
 
 import (
 	"bytes"
+	"errors"
 )
 
 const (
@@ -52,11 +53,20 @@ func (h FrameHead) Bytes() []byte {
 
 type DataFrame struct {
 	FrameHead
-	Data []byte
+	data []byte
 }
 
 func NewDataFrame(head FrameHead, data []byte) Framer {
 	return &DataFrame{head, data}
+}
+
+func (f DataFrame) Data() []byte {
+	return f.data
+}
+
+func (f *DataFrame) SetData(b []byte) {
+	f.size += int32(len(b)) - f.size
+	f.data = b
 }
 
 func (f DataFrame) String() string {
@@ -64,13 +74,13 @@ func (f DataFrame) String() string {
 }
 
 func (f DataFrame) Bytes() []byte {
-	return append(f.FrameHead.Bytes(), f.Data...)
+	return append(f.FrameHead.Bytes(), f.data...)
 }
 
 type TextFrame struct {
 	FrameHead
-	Encoding string
-	Text     string
+	encoding string
+	text     string
 }
 
 func NewTextFrame(head FrameHead, data []byte) Framer {
@@ -78,24 +88,53 @@ func NewTextFrame(head FrameHead, data []byte) Framer {
 	f := &TextFrame{FrameHead: head}
 
 	encodingIndex := data[0]
-	f.Encoding = encodingForIndex(data[0])
+	f.encoding = encodingForIndex(data[0])
 
-	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[1:])); err != nil {
+	if f.text, err = Decoders[encodingIndex].ConvertString(string(data[1:])); err != nil {
 		return nil
 	}
 
 	return f
 }
 
+func (f TextFrame) Encoding() string {
+	return f.encoding
+}
+
+func (f *TextFrame) SetEncoding(encoding string) error {
+	if indexForEncoding(encoding) < 0 {
+		return errors.New("encoding: invalid encoding")
+	}
+
+	f.encoding = encoding
+	return nil
+}
+
+func (f TextFrame) Text() string {
+	return f.text
+}
+
+func (f *TextFrame) SetText(text string) error {
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedString, err := Encoders[encodingIndex].ConvertString(text)
+	if err != nil {
+		return err
+	}
+
+	f.size += int32(len(encodedString)) - f.size
+	f.text = text
+	return nil
+}
+
 func (f TextFrame) String() string {
-	return f.Text
+	return f.text
 }
 
 func (f TextFrame) Bytes() []byte {
 	bytes := make([]byte, f.Size())
 
-	encodingIndex := indexForEncoding(f.Encoding)
-	encodedString, err := Encoders[encodingIndex].ConvertString(f.Text)
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedString, err := Encoders[encodingIndex].ConvertString(f.text)
 	if err != nil {
 		return bytes
 	}
@@ -109,7 +148,7 @@ func (f TextFrame) Bytes() []byte {
 type DescTextFrame struct {
 	FrameHead
 	TextFrame
-	Description string
+	description string
 }
 
 func NewDescTextFrame(head FrameHead, data []byte) Framer {
@@ -118,35 +157,51 @@ func NewDescTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	encodingIndex := data[0]
 
-	f.Encoding = encodingForIndex(encodingIndex)
+	f.encoding = encodingForIndex(encodingIndex)
 
 	cutoff := 1
-	if i := afterNullIndex(data[1:], f.Encoding); i < 0 {
+	if i := afterNullIndex(data[1:], f.encoding); i < 0 {
 		return nil
 	} else {
 		cutoff += i
 	}
 
-	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[1:cutoff])); err != nil {
+	if f.description, err = Decoders[encodingIndex].ConvertString(string(data[1:cutoff])); err != nil {
 		return nil
 	}
 
-	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
+	if f.text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
 		return nil
 	}
 
 	return f
 }
 
+func (f DescTextFrame) Description() string {
+	return f.description
+}
+
+func (f *DescTextFrame) SetDescription(description string) error {
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedString, err := Encoders[encodingIndex].ConvertString(description)
+	if err != nil {
+		return err
+	}
+
+	f.size += int32(len(encodedString)) - f.size
+	f.description = description
+	return nil
+}
+
 func (f DescTextFrame) Bytes() []byte {
 	bytes := make([]byte, f.Size())
 
-	encodingIndex := indexForEncoding(f.Encoding)
-	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.description)
 	if err != nil {
 		return bytes
 	}
-	encodedText, err := Encoders[encodingIndex].ConvertString(f.Text)
+	encodedText, err := Encoders[encodingIndex].ConvertString(f.text)
 	if err != nil {
 		return bytes
 	}
@@ -163,8 +218,8 @@ func (f DescTextFrame) Bytes() []byte {
 type UnsynchTextFrame struct {
 	FrameHead
 	DescTextFrame
-	Language          string
-	ContentDescriptor string
+	language          string
+	contentDescriptor string
 }
 
 func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
@@ -173,42 +228,71 @@ func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
 
 	encodingIndex := data[0]
 
-	f.Encoding = encodingForIndex(encodingIndex)
-	f.Language = string(data[1:4])
+	f.encoding = encodingForIndex(encodingIndex)
+	f.language = string(data[1:4])
 
 	cutoff := 4
-	if i := afterNullIndex(data[4:], f.Encoding); i < 0 {
+	if i := afterNullIndex(data[4:], f.encoding); i < 0 {
 		return nil
 	} else {
 		cutoff += i
 	}
 
-	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[4:cutoff])); err != nil {
+	if f.description, err = Decoders[encodingIndex].ConvertString(string(data[4:cutoff])); err != nil {
 		return nil
 	}
 
-	if f.Text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
+	if f.text, err = Decoders[encodingIndex].ConvertString(string(data[cutoff:])); err != nil {
 		return nil
 	}
 
 	return f
 }
 
+func (f UnsynchTextFrame) Language() string {
+	return f.language
+}
+
+func (f *UnsynchTextFrame) SetLanguage(language string) error {
+	if len(language) != 3 {
+		return errors.New("language: invalid language string")
+	}
+
+	f.language = language
+	return nil
+}
+
+func (f UnsynchTextFrame) ContentDescriptor() string {
+	return f.contentDescriptor
+}
+
+func (f *UnsynchTextFrame) SetContentDescriptor(contentDescriptor string) error {
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedString, err := Encoders[encodingIndex].ConvertString(contentDescriptor)
+	if err != nil {
+		return err
+	}
+
+	f.size += int32(len(encodedString)) - f.size
+	f.contentDescriptor = contentDescriptor
+	return nil
+}
+
 func (f UnsynchTextFrame) Bytes() []byte {
 	bytes := make([]byte, f.Size())
 
-	encodingIndex := indexForEncoding(f.Encoding)
-	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.description)
 	if err != nil {
 		return bytes
 	}
-	encodedText, err := Encoders[encodingIndex].ConvertString(f.Text)
+	encodedText, err := Encoders[encodingIndex].ConvertString(f.text)
 	if err != nil {
 		return bytes
 	}
 
 	bytes[0] = encodingIndex
-	copy(bytes[1:4], []byte(f.Language))
+	copy(bytes[1:4], []byte(f.language))
 	index := 4
 	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
 	index += len(encodedDescription)
@@ -220,10 +304,10 @@ func (f UnsynchTextFrame) Bytes() []byte {
 type ImageFrame struct {
 	FrameHead
 	DataFrame
-	Encoding    string
-	MIMEType    string
-	PictureType byte
-	Description string
+	encoding    string
+	mimeType    string
+	pictureType byte
+	description string
 }
 
 func NewImageFrame(head FrameHead, data []byte) Framer {
@@ -232,52 +316,80 @@ func NewImageFrame(head FrameHead, data []byte) Framer {
 	var err error
 	encodingIndex := data[0]
 
-	f.Encoding = encodingForIndex(encodingIndex)
+	f.encoding = encodingForIndex(encodingIndex)
 
 	buffer := bytes.NewBuffer(data[1:])
-	if f.MIMEType, err = buffer.ReadString(0); err != nil {
+	if f.mimeType, err = buffer.ReadString(0); err != nil {
 		return nil
 	}
 
-	if f.PictureType, err = buffer.ReadByte(); err != nil {
+	if f.pictureType, err = buffer.ReadByte(); err != nil {
 		return nil
 	}
 
-	beginIndex := 1 + len(f.MIMEType) + 1
+	beginIndex := 1 + len(f.mimeType) + 1
 	var cutoff int
-	if i := afterNullIndex(data[beginIndex:], f.Encoding); i < 0 {
+	if i := afterNullIndex(data[beginIndex:], f.encoding); i < 0 {
 		return nil
 	} else {
 		cutoff = beginIndex + i
 	}
 
-	if f.Description, err = Decoders[encodingIndex].ConvertString(string(data[beginIndex:cutoff])); err != nil {
+	if f.description, err = Decoders[encodingIndex].ConvertString(string(data[beginIndex:cutoff])); err != nil {
 		return nil
 	}
 
-	f.Data = data[cutoff:]
+	f.data = data[cutoff:]
 
 	return f
+}
+
+func (f ImageFrame) Encoding() string {
+	return f.encoding
+}
+
+func (f *ImageFrame) SetEncoding(encoding string) error {
+	if indexForEncoding(encoding) < 0 {
+		return errors.New("encoding: invalid encoding")
+	}
+
+	f.encoding = encoding
+	return nil
+}
+
+func (f ImageFrame) MIMEType() string {
+	return f.mimeType
+}
+
+func (f *ImageFrame) SetMIMEType(mimeType string) {
+	f.size += int32(len(mimeType)) - f.size
+	if mimeType[len(mimeType)-1] != 0 {
+		nullTermBytes := append([]byte(mimeType), 0x00)
+		f.mimeType = string(nullTermBytes)
+		f.size += 1
+	} else {
+		f.mimeType = mimeType
+	}
 }
 
 func (f ImageFrame) Bytes() []byte {
 	bytes := make([]byte, f.Size())
 
-	encodingIndex := indexForEncoding(f.Encoding)
-	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.Description)
+	encodingIndex := indexForEncoding(f.encoding)
+	encodedDescription, err := Encoders[encodingIndex].ConvertString(f.description)
 	if err != nil {
 		return bytes
 	}
 
 	bytes[0] = encodingIndex
 	index := 1
-	copy(bytes[index:index+len(f.MIMEType)], []byte(f.MIMEType))
-	index += len(f.MIMEType)
-	bytes[index] = f.PictureType
+	copy(bytes[index:index+len(f.mimeType)], []byte(f.mimeType))
+	index += len(f.mimeType)
+	bytes[index] = f.pictureType
 	index += 1
 	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
 	index += len(encodedDescription)
-	copy(bytes[index:index+len(f.Data)], f.Data)
+	copy(bytes[index:index+len(f.data)], f.data)
 
 	return append(f.FrameHead.Bytes(), bytes...)
 }
