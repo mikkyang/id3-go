@@ -117,3 +117,14 @@ func NewV3Frame(reader io.Reader) Framer {
 
 	return t.constructor(h, frameData)
 }
+
+func V3Bytes(f Framer) []byte {
+	headBytes := make([]byte, FrameHeaderSize)
+
+	copy(headBytes[:4], []byte(f.Id()))
+	copy(headBytes[4:8], normbytes(int32(f.Size())))
+	headBytes[8] = f.StatusFlags()
+	headBytes[9] = f.FormatFlags()
+
+	return append(headBytes, f.Bytes()...)
+}

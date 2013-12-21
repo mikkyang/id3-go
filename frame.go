@@ -21,6 +21,8 @@ type FrameType struct {
 type Framer interface {
 	Id() string
 	Size() int
+	StatusFlags() byte
+	FormatFlags() byte
 	String() string
 	Bytes() []byte
 }
@@ -40,15 +42,12 @@ func (h FrameHead) Size() int {
 	return int(h.size)
 }
 
-func (h FrameHead) Bytes() []byte {
-	bytes := make([]byte, FrameHeaderSize)
+func (h FrameHead) StatusFlags() byte {
+	return h.statusFlags
+}
 
-	copy(bytes[:4], []byte(h.id))
-	copy(bytes[4:8], intbytes(h.size, NormByteLength))
-	bytes[8] = h.statusFlags
-	bytes[9] = h.formatFlags
-
-	return bytes
+func (h FrameHead) FormatFlags() byte {
+	return h.formatFlags
 }
 
 type DataFrame struct {
@@ -74,7 +73,7 @@ func (f DataFrame) String() string {
 }
 
 func (f DataFrame) Bytes() []byte {
-	return append(f.FrameHead.Bytes(), f.data...)
+	return f.data
 }
 
 type TextFrame struct {
@@ -142,7 +141,7 @@ func (f TextFrame) Bytes() []byte {
 	bytes[0] = encodingIndex
 	copy(bytes[1:], []byte(encodedString))
 
-	return append(f.FrameHead.Bytes(), bytes...)
+	return bytes
 }
 
 type DescTextFrame struct {
@@ -212,7 +211,7 @@ func (f DescTextFrame) Bytes() []byte {
 	index += len(encodedDescription)
 	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
 
-	return append(f.FrameHead.Bytes(), bytes...)
+	return bytes
 }
 
 type UnsynchTextFrame struct {
@@ -298,7 +297,7 @@ func (f UnsynchTextFrame) Bytes() []byte {
 	index += len(encodedDescription)
 	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
 
-	return append(f.FrameHead.Bytes(), bytes...)
+	return bytes
 }
 
 type ImageFrame struct {
@@ -391,5 +390,5 @@ func (f ImageFrame) Bytes() []byte {
 	index += len(encodedDescription)
 	copy(bytes[index:index+len(f.data)], f.data)
 
-	return append(f.FrameHead.Bytes(), bytes...)
+	return bytes
 }

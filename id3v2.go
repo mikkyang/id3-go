@@ -52,7 +52,14 @@ func (t Tag) Bytes() []byte {
 	for _, v := range t.Frames {
 		for _, f := range v {
 			size := FrameHeaderSize + f.Size()
-			copy(data[index:index+size], f.Bytes())
+
+			switch t.Header.Version() {
+			case "2.3":
+				copy(data[index:index+size], V3Bytes(f))
+			default:
+				copy(data[index:index+size], V3Bytes(f))
+			}
+
 			index += size
 		}
 	}
