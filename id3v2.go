@@ -85,7 +85,7 @@ func NewHeader(reader io.Reader) Header {
 		return nil
 	}
 
-	return &Head{
+	return Head{
 		version:  data[3],
 		revision: data[4],
 		flags:    data[5],
