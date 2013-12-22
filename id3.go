@@ -11,8 +11,13 @@ import (
 
 type File struct {
 	*Tag
+	commonFrames
 	name string
 	data []byte
+}
+
+type commonFrames struct {
+	Title, Artist, Album, Genre string
 }
 
 func Open(name string) (*File, error) {
@@ -29,10 +34,22 @@ func Open(name string) (*File, error) {
 		return nil, err
 	}
 
-	return &File{tag, name, data}, nil
+	common := commonFrames{
+		tag.textFrame("TIT2"),
+		tag.textFrame("TPE1"),
+		tag.textFrame("TALB"),
+		tag.textFrame("TCON"),
+	}
+
+	return &File{tag, common, name, data}, nil
 }
 
 func (f *File) Close() {
+	f.setTextFrame("TIT2", f.Title)
+	f.setTextFrame("TPE1", f.Artist)
+	f.setTextFrame("TALB", f.Album)
+	f.setTextFrame("TCON", f.Genre)
+
 	fi, err := os.Create(f.name)
 	defer fi.Close()
 	if err != nil {
@@ -42,4 +59,28 @@ func (f *File) Close() {
 	wr := bufio.NewWriter(fi)
 	wr.Write(f.Tag.Bytes())
 	wr.Write(f.data)
+}
+
+func (t Tag) textFrame(id string) string {
+	if frames, ok := t.Frames[id]; ok {
+		frame := frames[0]
+		switch frame.(type) {
+		case (*TextFrame):
+			return frame.(*TextFrame).Text()
+		default:
+		}
+	}
+
+	return ""
+}
+
+func (t *Tag) setTextFrame(id, text string) {
+	if frames, ok := t.Frames[id]; ok {
+		frame := frames[0]
+		switch frame.(type) {
+		case (*TextFrame):
+			frame.(*TextFrame).SetText(text)
+		default:
+		}
+	}
 }
