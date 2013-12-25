@@ -26,7 +26,7 @@ func NewTag(reader io.Reader) *Tag {
 	var frame Framer
 	for size := t.Header.Size(); size > 0; {
 		switch t.Header.Version() {
-		case "2.3":
+		case "2.3.0":
 			frame = NewV3Frame(reader)
 		default:
 			frame = NewV3Frame(reader)
@@ -100,7 +100,7 @@ type Head struct {
 }
 
 func (h Head) Version() string {
-	return fmt.Sprintf("%d.%d", h.version, h.revision)
+	return fmt.Sprintf("2.%d.%d", h.version, h.revision)
 }
 
 func (h Head) Size() int {
