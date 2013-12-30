@@ -114,13 +114,12 @@ func (f TextFrame) Text() string {
 }
 
 func (f *TextFrame) SetText(text string) error {
-	encodingIndex := indexForEncoding(f.encoding)
-	encodedString, err := Encoders[encodingIndex].ConvertString(text)
+	diff, err := encodedDiff(f.encoding, text, f.text)
 	if err != nil {
 		return err
 	}
 
-	f.size += int32(len(encodedString)) - f.size
+	f.size += int32(diff)
 	f.text = text
 	return nil
 }
@@ -181,13 +180,12 @@ func (f DescTextFrame) Description() string {
 }
 
 func (f *DescTextFrame) SetDescription(description string) error {
-	encodingIndex := indexForEncoding(f.encoding)
-	encodedString, err := Encoders[encodingIndex].ConvertString(description)
+	diff, err := encodedDiff(f.encoding, description, f.description)
 	if err != nil {
 		return err
 	}
 
-	f.size += int32(len(encodedString)) - f.size
+	f.size += int32(diff)
 	f.description = description
 	return nil
 }
@@ -266,13 +264,12 @@ func (f UnsynchTextFrame) ContentDescriptor() string {
 }
 
 func (f *UnsynchTextFrame) SetContentDescriptor(contentDescriptor string) error {
-	encodingIndex := indexForEncoding(f.encoding)
-	encodedString, err := Encoders[encodingIndex].ConvertString(contentDescriptor)
+	diff, err := encodedDiff(f.encoding, contentDescriptor, f.contentDescriptor)
 	if err != nil {
 		return err
 	}
 
-	f.size += int32(len(encodedString)) - f.size
+	f.size += int32(diff)
 	f.contentDescriptor = contentDescriptor
 	return nil
 }
