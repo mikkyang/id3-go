@@ -39,7 +39,7 @@ func NewTag(reader io.Reader) *Tag {
 		id := frame.Id()
 		t.Frames[id] = append(t.Frames[id], frame)
 
-		size -= frame.Size()
+		size -= FrameHeaderSize + frame.Size()
 	}
 
 	return t
