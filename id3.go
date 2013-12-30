@@ -62,8 +62,7 @@ func (f *File) Close() {
 }
 
 func (t Tag) textFrame(id string) string {
-	if frames, ok := t.Frames[id]; ok {
-		frame := frames[0]
+	if frame := t.Frame(id); frame != nil {
 		switch frame.(type) {
 		case (*TextFrame):
 			return frame.(*TextFrame).Text()
@@ -75,8 +74,7 @@ func (t Tag) textFrame(id string) string {
 }
 
 func (t *Tag) setTextFrame(id, text string) {
-	if frames, ok := t.Frames[id]; ok {
-		frame := frames[0]
+	if frame := t.Frame(id); frame != nil {
 		switch frame.(type) {
 		case (*TextFrame):
 			frame.(*TextFrame).SetText(text)

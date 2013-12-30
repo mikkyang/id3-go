@@ -15,7 +15,7 @@ const (
 // Tag represents an ID3v2 tag
 type Tag struct {
 	Header
-	Frames  map[string][]Framer
+	frames  map[string][]Framer
 	padding uint
 }
 
@@ -41,7 +41,7 @@ func NewTag(reader io.Reader) *Tag {
 		}
 
 		id := frame.Id()
-		t.Frames[id] = append(t.Frames[id], frame)
+		t.frames[id] = append(t.frames[id], frame)
 
 		size -= FrameHeaderSize + frame.Size()
 	}
@@ -59,7 +59,7 @@ func NewTag(reader io.Reader) *Tag {
 // Recalculated as frames and padding can be changed
 func (t Tag) Size() int {
 	size := 0
-	for _, v := range t.Frames {
+	for _, v := range t.frames {
 		for _, f := range v {
 			size += FrameHeaderSize + f.Size()
 		}
@@ -81,7 +81,7 @@ func (t Tag) Bytes() []byte {
 	data := make([]byte, t.Size())
 
 	index := 0
-	for _, v := range t.Frames {
+	for _, v := range t.frames {
 		for _, f := range v {
 			size := FrameHeaderSize + f.Size()
 
@@ -97,6 +97,42 @@ func (t Tag) Bytes() []byte {
 	}
 
 	return append(t.Header.Bytes(), data...)
+}
+
+// All frames
+func (t Tag) Frames(id string) []Framer {
+	if frames, ok := t.frames[id]; ok && frames != nil {
+		return frames
+	}
+
+	return nil
+}
+
+// First frame
+func (t Tag) Frame(id string) Framer {
+	if frames := t.Frames(id); frames != nil {
+		return frames[0]
+	}
+
+	return nil
+}
+
+// Delete and return all frames
+func (t *Tag) DeleteFrames(id string) []Framer {
+	frames := t.Frames(id)
+	if frames == nil {
+		return nil
+	}
+
+	delete(t.frames, id)
+
+	return frames
+}
+
+// Add frame
+func (t *Tag) AddFrame(frame Framer) {
+	id := frame.Id()
+	t.frames[id] = append(t.frames[id], frame)
 }
 
 // Header represents the useful information contained in the data
