@@ -182,25 +182,29 @@ func (t *Tag) SetYear(text string) {
 	t.setTextFrameText("TYER", text)
 }
 
-func (t Tag) textFrameText(id string) string {
+func (t *Tag) textFrame(id string) *TextFrame {
 	if frame := t.Frame(id); frame != nil {
 		switch frame.(type) {
 		case (*TextFrame):
-			return frame.(*TextFrame).Text()
+			return frame.(*TextFrame)
 		default:
 		}
+	}
+
+	return nil
+}
+
+func (t Tag) textFrameText(id string) string {
+	if frame := t.textFrame(id); frame != nil {
+		return frame.Text()
 	}
 
 	return ""
 }
 
 func (t *Tag) setTextFrameText(id, text string) {
-	if frame := t.Frame(id); frame != nil {
-		switch frame.(type) {
-		case (*TextFrame):
-			frame.(*TextFrame).SetText(text)
-		default:
-		}
+	if frame := t.textFrame(id); frame != nil {
+		frame.SetText(text)
 	}
 }
 
