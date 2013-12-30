@@ -14,17 +14,19 @@ const (
 
 type Tag struct {
 	Header
-	Frames map[string][]Framer
+	Frames  map[string][]Framer
+	padding uint
 }
 
 func NewTag(reader io.Reader) *Tag {
-	t := &Tag{NewHeader(reader), make(map[string][]Framer)}
+	t := &Tag{NewHeader(reader), make(map[string][]Framer), 0}
 	if t.Header == nil {
 		return nil
 	}
 
 	var frame Framer
-	for size := t.Header.Size(); size > 0; {
+	size := t.Header.Size()
+	for size > 0 {
 		switch t.Header.Version() {
 		case "2.3.0":
 			frame = NewV3Frame(reader)
@@ -40,6 +42,12 @@ func NewTag(reader io.Reader) *Tag {
 		t.Frames[id] = append(t.Frames[id], frame)
 
 		size -= FrameHeaderSize + frame.Size()
+	}
+
+	t.padding = uint(size)
+	nAdvance := int(t.padding - FrameHeaderSize)
+	if n, err := io.ReadFull(reader, make([]byte, nAdvance)); n != nAdvance || err != nil {
+		return nil
 	}
 
 	return t
