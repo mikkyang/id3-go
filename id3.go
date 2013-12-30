@@ -11,12 +11,8 @@ import (
 
 type File struct {
 	*Tag
-	commonFrames
-	name string
-	data []byte
-}
-
-type commonFrames struct {
+	name                        string
+	data                        []byte
 	Title, Artist, Album, Genre string
 }
 
@@ -34,14 +30,15 @@ func Open(name string) (*File, error) {
 		return nil, err
 	}
 
-	common := commonFrames{
+	return &File{
+		tag,
+		name,
+		data,
 		tag.textFrame("TIT2"),
 		tag.textFrame("TPE1"),
 		tag.textFrame("TALB"),
 		tag.textFrame("TCON"),
-	}
-
-	return &File{tag, common, name, data}, nil
+	}, nil
 }
 
 func (f *File) Close() {
