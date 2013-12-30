@@ -53,6 +53,26 @@ func NewTag(reader io.Reader) *Tag {
 	return t
 }
 
+func (t Tag) Size() int {
+	size := 0
+	for _, v := range t.Frames {
+		for _, f := range v {
+			size += FrameHeaderSize + f.Size()
+		}
+	}
+
+	headerSize := t.Header.Size()
+	if padding := headerSize - size; padding < 0 {
+		t.padding = 0
+		head := t.Header.(Head)
+		head.size = int32(size)
+		return size
+	} else {
+		t.padding = uint(padding)
+		return headerSize
+	}
+}
+
 func (t Tag) Bytes() []byte {
 	data := make([]byte, t.Size())
 
