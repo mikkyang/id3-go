@@ -12,12 +12,14 @@ const (
 	HeaderSize = 10
 )
 
+// Tag represents an ID3v2 tag
 type Tag struct {
 	Header
 	Frames  map[string][]Framer
 	padding uint
 }
 
+// Creates a new tag
 func NewTag(reader io.Reader) *Tag {
 	t := &Tag{NewHeader(reader), make(map[string][]Framer), 0}
 	if t.Header == nil {
@@ -53,6 +55,8 @@ func NewTag(reader io.Reader) *Tag {
 	return t
 }
 
+// Size of the tag
+// Recalculated as frames and padding can be changed
 func (t Tag) Size() int {
 	size := 0
 	for _, v := range t.Frames {
@@ -95,6 +99,7 @@ func (t Tag) Bytes() []byte {
 	return append(t.Header.Bytes(), data...)
 }
 
+// Header represents the useful information contained in the data
 type Header interface {
 	Version() string
 	Size() int
@@ -121,6 +126,7 @@ func NewHeader(reader io.Reader) Header {
 	}
 }
 
+// Head represents the data of the header of the entire tag
 type Head struct {
 	version, revision byte
 	flags             byte

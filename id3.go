@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// File represents the tagged file
 type File struct {
 	*Tag
 	name                        string
@@ -16,6 +17,7 @@ type File struct {
 	Title, Artist, Album, Genre string
 }
 
+// Opens a new tagged file
 func Open(name string) (*File, error) {
 	fi, err := os.Open(name)
 	defer fi.Close()
@@ -41,6 +43,7 @@ func Open(name string) (*File, error) {
 	}, nil
 }
 
+// Saves any edits to the tagged file
 func (f *File) Close() {
 	f.setTextFrame("TIT2", f.Title)
 	f.setTextFrame("TPE1", f.Artist)

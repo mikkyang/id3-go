@@ -12,12 +12,16 @@ const (
 	FrameHeaderSize = 10
 )
 
+// FrameType holds frame id metadata and constructor method
+// A set number of these are created in the version specific files
 type FrameType struct {
 	id          string
 	description string
 	constructor func(FrameHead, []byte) Framer
 }
 
+// Framer provides a generic interface for frames
+// This is the default type returned when creating frames
 type Framer interface {
 	Id() string
 	Size() int
@@ -27,6 +31,9 @@ type Framer interface {
 	Bytes() []byte
 }
 
+// FrameHead represents the header of each frame
+// Additional metadata is kept through the embedded frame type
+// These do not usually need to be manually created
 type FrameHead struct {
 	FrameType
 	statusFlags byte
@@ -50,6 +57,7 @@ func (h FrameHead) FormatFlags() byte {
 	return h.formatFlags
 }
 
+// DataFrame is the default frame for binary data
 type DataFrame struct {
 	FrameHead
 	data []byte
@@ -76,6 +84,7 @@ func (f DataFrame) Bytes() []byte {
 	return f.data
 }
 
+// TextFrame represents frames that contain encoded text
 type TextFrame struct {
 	FrameHead
 	encoding string
@@ -149,6 +158,7 @@ type DescTextFrame struct {
 	description string
 }
 
+// DescTextFrame represents frames that contain encoded text and descriptions
 func NewDescTextFrame(head FrameHead, data []byte) Framer {
 	f := &DescTextFrame{FrameHead: head}
 
@@ -212,6 +222,7 @@ func (f DescTextFrame) Bytes() []byte {
 	return bytes
 }
 
+// UnsynchTextFrame represents frames that contain unsynchronized text
 type UnsynchTextFrame struct {
 	FrameHead
 	DescTextFrame
@@ -297,6 +308,7 @@ func (f UnsynchTextFrame) Bytes() []byte {
 	return bytes
 }
 
+// ImageFrame represent frames that have media attached
 type ImageFrame struct {
 	FrameHead
 	DataFrame

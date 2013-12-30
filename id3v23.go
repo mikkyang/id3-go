@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// V3FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.3
 	V3FrameTypeMap = map[string]FrameType{
 		"AENC": FrameType{id: "AENC", description: "Audio encryption", constructor: NewDataFrame},
 		"APIC": FrameType{id: "APIC", description: "Attached picture", constructor: NewImageFrame},
