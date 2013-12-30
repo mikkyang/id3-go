@@ -9,9 +9,29 @@ import (
 	"os"
 )
 
+// Tagger represents the metadata of a tag
+type Tagger interface {
+	Title() string
+	Artist() string
+	Album() string
+	Year() string
+	Genre() string
+	SetTitle(string)
+	SetArtist(string)
+	SetAlbum(string)
+	SetYear(string)
+	SetGenre(string)
+	Frame(string) Framer
+	Frames(string) []Framer
+	DeleteFrames(string) []Framer
+	AddFrame(Framer)
+	Bytes() []byte
+	Version() string
+}
+
 // File represents the tagged file
 type File struct {
-	*Tag
+	Tagger
 	name string
 	data []byte
 }
@@ -47,6 +67,6 @@ func (f *File) Close() {
 	}
 
 	wr := bufio.NewWriter(fi)
-	wr.Write(f.Tag.Bytes())
+	wr.Write(f.Tagger.Bytes())
 	wr.Write(f.data)
 }
