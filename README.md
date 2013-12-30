@@ -2,6 +2,8 @@
 
 ID3 library for Go. Work in progress.
 
+Currently only supports ID3v2.3.
+
 # Install
 
 The platform ($GOROOT/bin) "go get" tool is the best method to install.
