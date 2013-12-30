@@ -154,6 +154,10 @@ func (t Tag) Album() string {
 	return t.textFrameText("TALB")
 }
 
+func (t Tag) Year() string {
+	return t.textFrameText("TYER")
+}
+
 func (t Tag) Genre() string {
 	return t.textFrameText("TCON")
 }
@@ -172,6 +176,10 @@ func (t *Tag) SetAlbum(text string) {
 
 func (t *Tag) SetGenre(text string) {
 	t.setTextFrameText("TCON", text)
+}
+
+func (t *Tag) SetYear(text string) {
+	t.setTextFrameText("TYER", text)
 }
 
 func (t Tag) textFrameText(id string) string {
