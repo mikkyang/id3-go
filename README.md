@@ -36,20 +36,19 @@ It's also a good idea to ensure that the file is closed using `defer`.
 
 # Accessing Frames
 
-Some commonly used frames have fields in the file for easier access. These
-frames are `Title`, `Artist`, `Album`, and `Genre`.
+Some commonly used frames have methods in the tag for easier access. These
+frames are for `Title`, `Artist`, `Album`, `Year`, and `Genre`.
 
-    mp3File.Artist = "Okasian"
-    fmt.Println(mp3File.Artist)
+    mp3File.SetArtist("Okasian")
+    fmt.Println(mp3File.Artist())
 
 ## Other Frames
 
-Other frames can be accessed directly by using the `Frames` field of the
-file, which is a map, keyed by ID3 frame identifiers, of slices containing
-`Framer` interfaces. This interfaces allow read access to general details of
-the file.
+Other frames can be accessed directly by using the `Frame` or `Frames` method
+of the file, which return the first frame or a slice of frames as `Framer`
+interfaces. This interfaces allow read access to general details of the file.
 
-    lyricsFrame := mp3File.Frames["USLT"][0]
+    lyricsFrame := mp3File.Frame("USLT")
     lyrics := lyricsFrame.String()
 
 If more specific information is needed, or frame-specific write access is
@@ -57,4 +56,4 @@ needed, then the interface must be cast into the appropriate underlying type.
 The example provided does not check for errors, but it is recommended to do
 so.
 
-    lyricsFrame := mp3File.Frames["USLT"][0].(*id3.UnsynchTextFrame)
+    lyricsFrame := mp3File.Frame("USLT").(*id3.UnsynchTextFrame)
