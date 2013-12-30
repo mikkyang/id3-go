@@ -12,9 +12,8 @@ import (
 // File represents the tagged file
 type File struct {
 	*Tag
-	name                        string
-	data                        []byte
-	Title, Artist, Album, Genre string
+	name string
+	data []byte
 }
 
 // Opens a new tagged file
@@ -36,20 +35,11 @@ func Open(name string) (*File, error) {
 		tag,
 		name,
 		data,
-		tag.textFrame("TIT2"),
-		tag.textFrame("TPE1"),
-		tag.textFrame("TALB"),
-		tag.textFrame("TCON"),
 	}, nil
 }
 
 // Saves any edits to the tagged file
 func (f *File) Close() {
-	f.setTextFrame("TIT2", f.Title)
-	f.setTextFrame("TPE1", f.Artist)
-	f.setTextFrame("TALB", f.Album)
-	f.setTextFrame("TCON", f.Genre)
-
 	fi, err := os.Create(f.name)
 	defer fi.Close()
 	if err != nil {
@@ -59,26 +49,4 @@ func (f *File) Close() {
 	wr := bufio.NewWriter(fi)
 	wr.Write(f.Tag.Bytes())
 	wr.Write(f.data)
-}
-
-func (t Tag) textFrame(id string) string {
-	if frame := t.Frame(id); frame != nil {
-		switch frame.(type) {
-		case (*TextFrame):
-			return frame.(*TextFrame).Text()
-		default:
-		}
-	}
-
-	return ""
-}
-
-func (t *Tag) setTextFrame(id, text string) {
-	if frame := t.Frame(id); frame != nil {
-		switch frame.(type) {
-		case (*TextFrame):
-			frame.(*TextFrame).SetText(text)
-		default:
-		}
-	}
 }

@@ -142,6 +142,60 @@ type Header interface {
 	Bytes() []byte
 }
 
+func (t Tag) Title() string {
+	return t.textFrameText("TIT2")
+}
+
+func (t Tag) Artist() string {
+	return t.textFrameText("TPE1")
+}
+
+func (t Tag) Album() string {
+	return t.textFrameText("TALB")
+}
+
+func (t Tag) Genre() string {
+	return t.textFrameText("TCON")
+}
+
+func (t *Tag) SetTitle(text string) {
+	t.setTextFrameText("TIT2", text)
+}
+
+func (t *Tag) SetArtist(text string) {
+	t.setTextFrameText("TPE1", text)
+}
+
+func (t *Tag) SetAlbum(text string) {
+	t.setTextFrameText("TALB", text)
+}
+
+func (t *Tag) SetGenre(text string) {
+	t.setTextFrameText("TCON", text)
+}
+
+func (t Tag) textFrameText(id string) string {
+	if frame := t.Frame(id); frame != nil {
+		switch frame.(type) {
+		case (*TextFrame):
+			return frame.(*TextFrame).Text()
+		default:
+		}
+	}
+
+	return ""
+}
+
+func (t *Tag) setTextFrameText(id, text string) {
+	if frame := t.Frame(id); frame != nil {
+		switch frame.(type) {
+		case (*TextFrame):
+			frame.(*TextFrame).SetText(text)
+		default:
+		}
+	}
+}
+
 func NewHeader(reader io.Reader) Header {
 	data := make([]byte, HeaderSize)
 	n, err := io.ReadFull(reader, data)
