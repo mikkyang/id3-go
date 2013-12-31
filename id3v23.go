@@ -8,6 +8,25 @@ import (
 )
 
 var (
+	// V3DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2
+	V3DeprecatedTypeMap = map[string]string{
+		"BUF": "RBUF", "COM": "COMM", "CRA": "AENC", "EQU": "EQUA",
+		"ETC": "ETCO", "GEO": "GEOB", "MCI": "MCDI", "MLL": "MLLT",
+		"PIC": "APIC", "POP": "POPM", "REV": "RVRB", "RVA": "RVAD",
+		"SLT": "SYLT", "STC": "SYTC", "TAL": "TALB", "TBP": "TBPM",
+		"TCM": "TCOM", "TCO": "TCON", "TCR": "TCOP", "TDA": "TDAT",
+		"TDY": "TDLY", "TEN": "TENC", "TFT": "TFLT", "TIM": "TIME",
+		"TKE": "TKEY", "TLA": "TLAN", "TLE": "TLEN", "TMT": "TMED",
+		"TOA": "TOPE", "TOF": "TOFN", "TOL": "TOLY", "TOR": "TORY",
+		"TOT": "TOAL", "TP1": "TPE1", "TP2": "TPE2", "TP3": "TPE3",
+		"TP4": "TPE4", "TPA": "TPOS", "TPB": "TPUB", "TRC": "TSRC",
+		"TRD": "TRDA", "TRK": "TRCK", "TSI": "TSIZ", "TSS": "TSSE",
+		"TT1": "TIT1", "TT2": "TIT2", "TT3": "TIT3", "TXT": "TEXT",
+		"TXX": "TXXX", "TYE": "TYER", "UFI": "UFID", "ULT": "USLT",
+		"WAF": "WOAF", "WAR": "WOAR", "WAS": "WOAS", "WCM": "WCOM",
+		"WCP": "WCOP", "WPB": "WPB", "WXX": "WXXX",
+	}
+
 	// V3FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.3
 	V3FrameTypeMap = map[string]FrameType{
 		"AENC": FrameType{id: "AENC", description: "Audio encryption", constructor: NewDataFrame},
