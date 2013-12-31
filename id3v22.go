@@ -12,6 +12,15 @@ const (
 )
 
 var (
+	// Common frame IDs
+	V2CommonFrame = map[string]string{
+		"Title":  "TT2",
+		"Artist": "TP1",
+		"Album":  "TAL",
+		"Year":   "TYE",
+		"Genre":  "TCO",
+	}
+
 	// V2FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.2
 	V2FrameTypeMap = map[string]FrameType{
 		"BUF": FrameType{id: "BUF", description: "Recommended buffer size", constructor: NewDataFrame},

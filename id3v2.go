@@ -15,26 +15,47 @@ const (
 // Tag represents an ID3v2 tag
 type Tag struct {
 	Header
-	frames  map[string][]Framer
-	padding uint
+	frames                map[string][]Framer
+	padding               uint
+	commonMap             map[string]string
+	frameHeaderSize       int
+	frameConstructor      func(io.Reader) Framer
+	frameBytesConstructor func(Framer) []byte
 }
 
 // Creates a new tag
 func NewTag(reader io.Reader) *Tag {
-	t := &Tag{NewHeader(reader), make(map[string][]Framer), 0}
+	t := &Tag{
+		Header: NewHeader(reader),
+		frames: make(map[string][]Framer),
+	}
+
 	if t.Header == nil {
 		return nil
+	}
+
+	switch t.Header.Version() {
+	case "2.2.0":
+		t.commonMap = V2CommonFrame
+		t.frameConstructor = NewV2Frame
+		t.frameHeaderSize = V2FrameHeaderSize
+		t.frameBytesConstructor = V2Bytes
+	case "2.3.0":
+		t.commonMap = V3CommonFrame
+		t.frameConstructor = NewV3Frame
+		t.frameHeaderSize = FrameHeaderSize
+		t.frameBytesConstructor = V3Bytes
+	default:
+		t.commonMap = V3CommonFrame
+		t.frameConstructor = NewV3Frame
+		t.frameHeaderSize = FrameHeaderSize
+		t.frameBytesConstructor = V3Bytes
 	}
 
 	var frame Framer
 	size := t.Header.Size()
 	for size > 0 {
-		switch t.Header.Version() {
-		case "2.3.0":
-			frame = NewV3Frame(reader)
-		default:
-			frame = NewV3Frame(reader)
-		}
+		frame = t.frameConstructor(reader)
 
 		if frame == nil {
 			break
@@ -43,11 +64,11 @@ func NewTag(reader io.Reader) *Tag {
 		id := frame.Id()
 		t.frames[id] = append(t.frames[id], frame)
 
-		size -= FrameHeaderSize + frame.Size()
+		size -= t.frameHeaderSize + frame.Size()
 	}
 
 	t.padding = uint(size)
-	nAdvance := int(t.padding - FrameHeaderSize)
+	nAdvance := int(t.padding) - t.frameHeaderSize
 	if n, err := io.ReadFull(reader, make([]byte, nAdvance)); n != nAdvance || err != nil {
 		return nil
 	}
@@ -61,7 +82,7 @@ func (t Tag) Size() int {
 	size := 0
 	for _, v := range t.frames {
 		for _, f := range v {
-			size += FrameHeaderSize + f.Size()
+			size += t.frameHeaderSize + f.Size()
 		}
 	}
 
@@ -83,14 +104,8 @@ func (t Tag) Bytes() []byte {
 	index := 0
 	for _, v := range t.frames {
 		for _, f := range v {
-			size := FrameHeaderSize + f.Size()
-
-			switch t.Header.Version() {
-			case "2.3":
-				copy(data[index:index+size], V3Bytes(f))
-			default:
-				copy(data[index:index+size], V3Bytes(f))
-			}
+			size := t.frameHeaderSize + f.Size()
+			copy(data[index:index+size], t.frameBytesConstructor(f))
 
 			index += size
 		}
@@ -143,43 +158,43 @@ type Header interface {
 }
 
 func (t Tag) Title() string {
-	return t.textFrameText("TIT2")
+	return t.textFrameText(t.commonMap["Title"])
 }
 
 func (t Tag) Artist() string {
-	return t.textFrameText("TPE1")
+	return t.textFrameText(t.commonMap["Artist"])
 }
 
 func (t Tag) Album() string {
-	return t.textFrameText("TALB")
+	return t.textFrameText(t.commonMap["Album"])
 }
 
 func (t Tag) Year() string {
-	return t.textFrameText("TYER")
+	return t.textFrameText(t.commonMap["Year"])
 }
 
 func (t Tag) Genre() string {
-	return t.textFrameText("TCON")
+	return t.textFrameText(t.commonMap["Genre"])
 }
 
 func (t *Tag) SetTitle(text string) {
-	t.setTextFrameText("TIT2", text)
+	t.setTextFrameText(t.commonMap["Title"], text)
 }
 
 func (t *Tag) SetArtist(text string) {
-	t.setTextFrameText("TPE1", text)
+	t.setTextFrameText(t.commonMap["Artist"], text)
 }
 
 func (t *Tag) SetAlbum(text string) {
-	t.setTextFrameText("TALB", text)
-}
-
-func (t *Tag) SetGenre(text string) {
-	t.setTextFrameText("TCON", text)
+	t.setTextFrameText(t.commonMap["Album"], text)
 }
 
 func (t *Tag) SetYear(text string) {
-	t.setTextFrameText("TYER", text)
+	t.setTextFrameText(t.commonMap["Year"], text)
+}
+
+func (t *Tag) SetGenre(text string) {
+	t.setTextFrameText(t.commonMap["Genre"], text)
 }
 
 func (t *Tag) textFrame(id string) *TextFrame {

@@ -8,6 +8,15 @@ import (
 )
 
 var (
+	// Common frame IDs
+	V3CommonFrame = map[string]string{
+		"Title":  "TIT2",
+		"Artist": "TPE1",
+		"Album":  "TALB",
+		"Year":   "TYER",
+		"Genre":  "TCON",
+	}
+
 	// V3DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2
 	V3DeprecatedTypeMap = map[string]string{
 		"BUF": "RBUF", "COM": "COMM", "CRA": "AENC", "EQU": "EQUA",
