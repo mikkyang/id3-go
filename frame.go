@@ -84,6 +84,15 @@ func (f DataFrame) Bytes() []byte {
 	return f.data
 }
 
+// TextFramer represents frames that contain encoded text
+type TextFramer interface {
+	Framer
+	Encoding() string
+	SetEncoding(string) error
+	Text() string
+	SetText(string) error
+}
+
 // TextFrame represents frames that contain encoded text
 type TextFrame struct {
 	FrameHead

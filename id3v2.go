@@ -197,12 +197,10 @@ func (t *Tag) SetGenre(text string) {
 	t.setTextFrameText(t.commonMap["Genre"], text)
 }
 
-func (t *Tag) textFrame(id string) *TextFrame {
+func (t *Tag) textFrame(id string) TextFramer {
 	if frame := t.Frame(id); frame != nil {
-		switch frame.(type) {
-		case (*TextFrame):
-			return frame.(*TextFrame)
-		default:
+		if textFramer, ok := frame.(TextFramer); ok {
+			return textFramer
 		}
 	}
 
