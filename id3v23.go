@@ -10,11 +10,12 @@ import (
 var (
 	// Common frame IDs
 	V23CommonFrame = map[string]string{
-		"Title":  "TIT2",
-		"Artist": "TPE1",
-		"Album":  "TALB",
-		"Year":   "TYER",
-		"Genre":  "TCON",
+		"Title":    "TIT2",
+		"Artist":   "TPE1",
+		"Album":    "TALB",
+		"Year":     "TYER",
+		"Genre":    "TCON",
+		"Comments": "COMM",
 	}
 
 	// V23DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2
@@ -40,7 +41,7 @@ var (
 	V23FrameTypeMap = map[string]FrameType{
 		"AENC": FrameType{id: "AENC", description: "Audio encryption", constructor: NewDataFrame},
 		"APIC": FrameType{id: "APIC", description: "Attached picture", constructor: NewImageFrame},
-		"COMM": FrameType{id: "COMM", description: "Comments", constructor: NewDataFrame},
+		"COMM": FrameType{id: "COMM", description: "Comments", constructor: NewUnsynchTextFrame},
 		"COMR": FrameType{id: "COMR", description: "Commercial frame", constructor: NewDataFrame},
 		"ENCR": FrameType{id: "ENCR", description: "Encryption method registration", constructor: NewDataFrame},
 		"EQUA": FrameType{id: "EQUA", description: "Equalization", constructor: NewDataFrame},

@@ -177,6 +177,20 @@ func (t Tag) Genre() string {
 	return t.textFrameText(t.commonMap["Genre"])
 }
 
+func (t Tag) Comments() []string {
+	frames := t.Frames(t.commonMap["Comments"])
+	if frames == nil {
+		return nil
+	}
+
+	comments := make([]string, len(frames))
+	for i, frame := range frames {
+		comments[i] = frame.String()
+	}
+
+	return comments
+}
+
 func (t *Tag) SetTitle(text string) {
 	t.setTextFrameText(t.commonMap["Title"], text)
 }

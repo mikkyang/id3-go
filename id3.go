@@ -16,6 +16,7 @@ type Tagger interface {
 	Album() string
 	Year() string
 	Genre() string
+	Comments() []string
 	SetTitle(string)
 	SetArtist(string)
 	SetAlbum(string)

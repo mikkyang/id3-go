@@ -14,18 +14,19 @@ const (
 var (
 	// Common frame IDs
 	V22CommonFrame = map[string]string{
-		"Title":  "TT2",
-		"Artist": "TP1",
-		"Album":  "TAL",
-		"Year":   "TYE",
-		"Genre":  "TCO",
+		"Title":    "TT2",
+		"Artist":   "TP1",
+		"Album":    "TAL",
+		"Year":     "TYE",
+		"Genre":    "TCO",
+		"Comments": "COM",
 	}
 
 	// V22FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.2
 	V22FrameTypeMap = map[string]FrameType{
 		"BUF": FrameType{id: "BUF", description: "Recommended buffer size", constructor: NewDataFrame},
 		"CNT": FrameType{id: "CNT", description: "Play counter", constructor: NewDataFrame},
-		"COM": FrameType{id: "COM", description: "Comments", constructor: NewDataFrame},
+		"COM": FrameType{id: "COM", description: "Comments", constructor: NewUnsynchTextFrame},
 		"CRA": FrameType{id: "CRA", description: "Audio encryption", constructor: NewDataFrame},
 		"CRM": FrameType{id: "CRM", description: "Encrypted meta frame", constructor: NewDataFrame},
 		"ETC": FrameType{id: "ETC", description: "Event timing codes", constructor: NewDataFrame},
