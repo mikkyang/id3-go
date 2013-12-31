@@ -13,7 +13,7 @@ const (
 	BytesPerInt     = 4
 	SynchByteLength = 7
 	NormByteLength  = 8
-	NativeEncoding  = "UTF-8"
+	NativeEncoding  = 3
 	UTF16NullLength = 2
 )
 
@@ -29,9 +29,10 @@ var (
 )
 
 func init() {
+	n := encodingForIndex(NativeEncoding)
 	for i, e := range EncodingMap {
-		Decoders[i], _ = iconv.NewConverter(e, NativeEncoding)
-		Encoders[i], _ = iconv.NewConverter(NativeEncoding, e)
+		Decoders[i], _ = iconv.NewConverter(e, n)
+		Encoders[i], _ = iconv.NewConverter(n, e)
 	}
 }
 
@@ -102,8 +103,10 @@ func indexForEncoding(e string) byte {
 	return 0
 }
 
-func afterNullIndex(data []byte, encoding string) int {
-	if encoding == "UTF-16" || encoding == "UTF-16BE" {
+func afterNullIndex(data []byte, encoding byte) int {
+	encodingString := encodingForIndex(encoding)
+
+	if encodingString == "UTF-16" || encodingString == "UTF-16BE" {
 		limit, byteCount := len(data), UTF16NullLength
 		null := bytes.Repeat([]byte{0x0}, byteCount)
 
@@ -124,15 +127,13 @@ func afterNullIndex(data []byte, encoding string) int {
 	return -1
 }
 
-func encodedDiff(encoding, a, b string) (int, error) {
-	encodingIndex := indexForEncoding(encoding)
-
-	ea, err := Encoders[encodingIndex].ConvertString(a)
+func encodedDiff(encoding byte, a, b string) (int, error) {
+	ea, err := Encoders[encoding].ConvertString(a)
 	if err != nil {
 		return 0, err
 	}
 
-	eb, err := Encoders[encodingIndex].ConvertString(b)
+	eb, err := Encoders[encoding].ConvertString(b)
 	if err != nil {
 		return 0, err
 	}
