@@ -36,7 +36,7 @@ func init() {
 }
 
 func byteint(buf []byte, base uint) (i int32, err error) {
-	if len(buf) != BytesPerInt {
+	if len(buf) > BytesPerInt {
 		err = errors.New("byte integer: invalid []byte length")
 		return
 	}
