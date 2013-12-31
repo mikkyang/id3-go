@@ -36,20 +36,20 @@ func NewTag(reader io.Reader) *Tag {
 
 	switch t.Header.Version() {
 	case "2.2.0":
-		t.commonMap = V2CommonFrame
-		t.frameConstructor = NewV2Frame
-		t.frameHeaderSize = V2FrameHeaderSize
-		t.frameBytesConstructor = V2Bytes
+		t.commonMap = V22CommonFrame
+		t.frameConstructor = NewV22Frame
+		t.frameHeaderSize = V22FrameHeaderSize
+		t.frameBytesConstructor = V22Bytes
 	case "2.3.0":
-		t.commonMap = V3CommonFrame
-		t.frameConstructor = NewV3Frame
+		t.commonMap = V23CommonFrame
+		t.frameConstructor = NewV23Frame
 		t.frameHeaderSize = FrameHeaderSize
-		t.frameBytesConstructor = V3Bytes
+		t.frameBytesConstructor = V23Bytes
 	default:
-		t.commonMap = V3CommonFrame
-		t.frameConstructor = NewV3Frame
+		t.commonMap = V23CommonFrame
+		t.frameConstructor = NewV23Frame
 		t.frameHeaderSize = FrameHeaderSize
-		t.frameBytesConstructor = V3Bytes
+		t.frameBytesConstructor = V23Bytes
 	}
 
 	var frame Framer

@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	V2FrameHeaderSize = 6
+	V22FrameHeaderSize = 6
 )
 
 var (
 	// Common frame IDs
-	V2CommonFrame = map[string]string{
+	V22CommonFrame = map[string]string{
 		"Title":  "TT2",
 		"Artist": "TP1",
 		"Album":  "TAL",
@@ -21,8 +21,8 @@ var (
 		"Genre":  "TCO",
 	}
 
-	// V2FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.2
-	V2FrameTypeMap = map[string]FrameType{
+	// V22FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.2
+	V22FrameTypeMap = map[string]FrameType{
 		"BUF": FrameType{id: "BUF", description: "Recommended buffer size", constructor: NewDataFrame},
 		"CNT": FrameType{id: "CNT", description: "Play counter", constructor: NewDataFrame},
 		"COM": FrameType{id: "COM", description: "Comments", constructor: NewDataFrame},
@@ -89,14 +89,14 @@ var (
 	}
 )
 
-func NewV2Frame(reader io.Reader) Framer {
-	data := make([]byte, V2FrameHeaderSize)
-	if n, err := io.ReadFull(reader, data); n < V2FrameHeaderSize || err != nil {
+func NewV22Frame(reader io.Reader) Framer {
+	data := make([]byte, V22FrameHeaderSize)
+	if n, err := io.ReadFull(reader, data); n < V22FrameHeaderSize || err != nil {
 		return nil
 	}
 
 	id := string(data[:3])
-	t, ok := V2FrameTypeMap[id]
+	t, ok := V22FrameTypeMap[id]
 	if !ok {
 		return nil
 	}
@@ -119,8 +119,8 @@ func NewV2Frame(reader io.Reader) Framer {
 	return t.constructor(h, frameData)
 }
 
-func V2Bytes(f Framer) []byte {
-	headBytes := make([]byte, V2FrameHeaderSize)
+func V22Bytes(f Framer) []byte {
+	headBytes := make([]byte, V22FrameHeaderSize)
 
 	copy(headBytes[:3], []byte(f.Id()))
 	copy(headBytes[3:6], normbytes(int32(f.Size()))[1:])

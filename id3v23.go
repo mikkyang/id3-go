@@ -9,7 +9,7 @@ import (
 
 var (
 	// Common frame IDs
-	V3CommonFrame = map[string]string{
+	V23CommonFrame = map[string]string{
 		"Title":  "TIT2",
 		"Artist": "TPE1",
 		"Album":  "TALB",
@@ -17,8 +17,8 @@ var (
 		"Genre":  "TCON",
 	}
 
-	// V3DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2
-	V3DeprecatedTypeMap = map[string]string{
+	// V23DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2
+	V23DeprecatedTypeMap = map[string]string{
 		"BUF": "RBUF", "COM": "COMM", "CRA": "AENC", "EQU": "EQUA",
 		"ETC": "ETCO", "GEO": "GEOB", "MCI": "MCDI", "MLL": "MLLT",
 		"PIC": "APIC", "POP": "POPM", "REV": "RVRB", "RVA": "RVAD",
@@ -36,8 +36,8 @@ var (
 		"WCP": "WCOP", "WPB": "WPB", "WXX": "WXXX",
 	}
 
-	// V3FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.3
-	V3FrameTypeMap = map[string]FrameType{
+	// V23FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.3
+	V23FrameTypeMap = map[string]FrameType{
 		"AENC": FrameType{id: "AENC", description: "Audio encryption", constructor: NewDataFrame},
 		"APIC": FrameType{id: "APIC", description: "Attached picture", constructor: NewImageFrame},
 		"COMM": FrameType{id: "COMM", description: "Comments", constructor: NewDataFrame},
@@ -115,14 +115,14 @@ var (
 	}
 )
 
-func NewV3Frame(reader io.Reader) Framer {
+func NewV23Frame(reader io.Reader) Framer {
 	data := make([]byte, FrameHeaderSize)
 	if n, err := io.ReadFull(reader, data); n < FrameHeaderSize || err != nil {
 		return nil
 	}
 
 	id := string(data[:4])
-	t, ok := V3FrameTypeMap[id]
+	t, ok := V23FrameTypeMap[id]
 	if !ok {
 		return nil
 	}
@@ -147,7 +147,7 @@ func NewV3Frame(reader io.Reader) Framer {
 	return t.constructor(h, frameData)
 }
 
-func V3Bytes(f Framer) []byte {
+func V23Bytes(f Framer) []byte {
 	headBytes := make([]byte, FrameHeaderSize)
 
 	copy(headBytes[:4], []byte(f.Id()))
