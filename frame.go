@@ -207,6 +207,10 @@ func (f *DescTextFrame) SetDescription(description string) error {
 	return nil
 }
 
+func (f DescTextFrame) String() string {
+	return fmt.Sprintf("%s: %s", f.description, f.text)
+}
+
 func (f DescTextFrame) Bytes() []byte {
 	bytes := make([]byte, f.Size())
 
@@ -271,6 +275,10 @@ func (f *UnsynchTextFrame) SetLanguage(language string) error {
 
 	f.language = language
 	return nil
+}
+
+func (f UnsynchTextFrame) String() string {
+	return fmt.Sprintf("%s\t%s:\n%s", f.language, f.description, f.text)
 }
 
 func (f UnsynchTextFrame) Bytes() []byte {
@@ -366,6 +374,10 @@ func (f *ImageFrame) SetMIMEType(mimeType string) {
 	} else {
 		f.mimeType = mimeType
 	}
+}
+
+func (f ImageFrame) String() string {
+	return fmt.Sprintf("%s\t%s: <binary data>", f.mimeType, f.description)
 }
 
 func (f ImageFrame) Bytes() []byte {
