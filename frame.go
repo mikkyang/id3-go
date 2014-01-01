@@ -4,8 +4,8 @@
 package id3
 
 import (
-	"bytes"
 	"errors"
+	"fmt"
 )
 
 const (
@@ -103,10 +103,13 @@ type TextFrame struct {
 func NewTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &TextFrame{FrameHead: head}
+	rd := newReader(data)
 
-	f.encoding = data[0]
+	if f.encoding, err = rd.readByte(); err != nil {
+		return nil
+	}
 
-	if f.text, err = Decoders[f.encoding].ConvertString(string(data[1:])); err != nil {
+	if f.text, err = rd.readRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -168,24 +171,19 @@ type DescTextFrame struct {
 
 // DescTextFrame represents frames that contain encoded text and descriptions
 func NewDescTextFrame(head FrameHead, data []byte) Framer {
-	f := &DescTextFrame{FrameHead: head}
-
 	var err error
+	f := &DescTextFrame{FrameHead: head}
+	rd := newReader(data)
 
-	f.encoding = data[0]
-
-	cutoff := 1
-	if i := afterNullIndex(data[1:], f.encoding); i < 0 {
-		return nil
-	} else {
-		cutoff += i
-	}
-
-	if f.description, err = Decoders[f.encoding].ConvertString(string(data[1:cutoff])); err != nil {
+	if f.encoding, err = rd.readByte(); err != nil {
 		return nil
 	}
 
-	if f.text, err = Decoders[f.encoding].ConvertString(string(data[cutoff:])); err != nil {
+	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+		return nil
+	}
+
+	if f.text, err = rd.readRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -242,22 +240,21 @@ type UnsynchTextFrame struct {
 func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &UnsynchTextFrame{FrameHead: head}
+	rd := newReader(data)
 
-	f.encoding = data[0]
-	f.language = string(data[1:4])
-
-	cutoff := 4
-	if i := afterNullIndex(data[4:], f.encoding); i < 0 {
-		return nil
-	} else {
-		cutoff += i
-	}
-
-	if f.description, err = Decoders[f.encoding].ConvertString(string(data[4:cutoff])); err != nil {
+	if f.encoding, err = rd.readByte(); err != nil {
 		return nil
 	}
 
-	if f.text, err = Decoders[f.encoding].ConvertString(string(data[cutoff:])); err != nil {
+	if f.language, err = rd.readNumBytesString(3); err != nil {
+		return nil
+	}
+
+	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+		return nil
+	}
+
+	if f.text, err = rd.readRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -314,35 +311,29 @@ type ImageFrame struct {
 }
 
 func NewImageFrame(head FrameHead, data []byte) Framer {
-	f := &ImageFrame{FrameHead: head}
-
 	var err error
-	encodingIndex := data[0]
+	f := &ImageFrame{FrameHead: head}
+	rd := newReader(data)
 
-	f.encoding = encodingIndex
-
-	buffer := bytes.NewBuffer(data[1:])
-	if f.mimeType, err = buffer.ReadString(0); err != nil {
+	if f.encoding, err = rd.readByte(); err != nil {
 		return nil
 	}
 
-	if f.pictureType, err = buffer.ReadByte(); err != nil {
+	if f.mimeType, err = rd.readNullTermString(NativeEncoding); err != nil {
 		return nil
 	}
 
-	beginIndex := 1 + len(f.mimeType) + 1
-	var cutoff int
-	if i := afterNullIndex(data[beginIndex:], f.encoding); i < 0 {
-		return nil
-	} else {
-		cutoff = beginIndex + i
-	}
-
-	if f.description, err = Decoders[encodingIndex].ConvertString(string(data[beginIndex:cutoff])); err != nil {
+	if f.pictureType, err = rd.readByte(); err != nil {
 		return nil
 	}
 
-	f.data = data[cutoff:]
+	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+		return nil
+	}
+
+	if f.data, err = rd.readRest(); err != nil {
+		return nil
+	}
 
 	return f
 }
