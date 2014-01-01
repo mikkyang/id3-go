@@ -22,7 +22,7 @@ var (
 		"ISO-8859-1",
 		"UTF-16",
 		"UTF-16BE",
-		"ISO-8859-1",
+		"UTF-8",
 	}
 	Decoders = make([]*iconv.Converter, len(EncodingMap))
 	Encoders = make([]*iconv.Converter, len(EncodingMap))
