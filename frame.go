@@ -232,8 +232,7 @@ func (f DescTextFrame) Bytes() []byte {
 type UnsynchTextFrame struct {
 	FrameHead
 	DescTextFrame
-	language          string
-	contentDescriptor string
+	language string
 }
 
 func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
@@ -271,21 +270,6 @@ func (f *UnsynchTextFrame) SetLanguage(language string) error {
 	}
 
 	f.language = language
-	return nil
-}
-
-func (f UnsynchTextFrame) ContentDescriptor() string {
-	return f.contentDescriptor
-}
-
-func (f *UnsynchTextFrame) SetContentDescriptor(contentDescriptor string) error {
-	diff, err := encodedDiff(f.encoding, contentDescriptor, f.contentDescriptor)
-	if err != nil {
-		return err
-	}
-
-	f.size += int32(diff)
-	f.contentDescriptor = contentDescriptor
 	return nil
 }
 
