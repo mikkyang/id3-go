@@ -150,15 +150,17 @@ func (f TextFrame) String() string {
 }
 
 func (f TextFrame) Bytes() []byte {
+	var err error
 	bytes := make([]byte, f.Size())
+	wr := newWriter(bytes)
 
-	encodedString, err := Encoders[f.encoding].ConvertString(f.text)
-	if err != nil {
+	if err = wr.writeByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	bytes[0] = f.encoding
-	copy(bytes[1:], []byte(encodedString))
+	if err = wr.writeString(f.text, f.encoding); err != nil {
+		return bytes
+	}
 
 	return bytes
 }
@@ -210,22 +212,21 @@ func (f DescTextFrame) String() string {
 }
 
 func (f DescTextFrame) Bytes() []byte {
+	var err error
 	bytes := make([]byte, f.Size())
+	wr := newWriter(bytes)
 
-	encodedDescription, err := Encoders[f.encoding].ConvertString(f.description)
-	if err != nil {
-		return bytes
-	}
-	encodedText, err := Encoders[f.encoding].ConvertString(f.text)
-	if err != nil {
+	if err = wr.writeByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	bytes[0] = f.encoding
-	index := 1
-	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
-	index += len(encodedDescription)
-	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
+	if err = wr.writeString(f.description, f.encoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.writeString(f.text, f.encoding); err != nil {
+		return bytes
+	}
 
 	return bytes
 }
@@ -279,23 +280,25 @@ func (f UnsynchTextFrame) String() string {
 }
 
 func (f UnsynchTextFrame) Bytes() []byte {
+	var err error
 	bytes := make([]byte, f.Size())
+	wr := newWriter(bytes)
 
-	encodedDescription, err := Encoders[f.encoding].ConvertString(f.description)
-	if err != nil {
-		return bytes
-	}
-	encodedText, err := Encoders[f.encoding].ConvertString(f.text)
-	if err != nil {
+	if err = wr.writeByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	bytes[0] = f.encoding
-	copy(bytes[1:4], []byte(f.language))
-	index := 4
-	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
-	index += len(encodedDescription)
-	copy(bytes[index:index+len(encodedText)], []byte(encodedText))
+	if err = wr.writeString(f.language, NativeEncoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.writeString(f.description, f.encoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.writeString(f.text, f.encoding); err != nil {
+		return bytes
+	}
 
 	return bytes
 }
@@ -372,22 +375,29 @@ func (f ImageFrame) String() string {
 }
 
 func (f ImageFrame) Bytes() []byte {
+	var err error
 	bytes := make([]byte, f.Size())
+	wr := newWriter(bytes)
 
-	encodedDescription, err := Encoders[f.encoding].ConvertString(f.description)
-	if err != nil {
+	if err = wr.writeByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	bytes[0] = f.encoding
-	index := 1
-	copy(bytes[index:index+len(f.mimeType)], []byte(f.mimeType))
-	index += len(f.mimeType)
-	bytes[index] = f.pictureType
-	index += 1
-	copy(bytes[index:index+len(encodedDescription)], []byte(encodedDescription))
-	index += len(encodedDescription)
-	copy(bytes[index:index+len(f.data)], f.data)
+	if err = wr.writeString(f.mimeType, NativeEncoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.writeByte(f.pictureType); err != nil {
+		return bytes
+	}
+
+	if err = wr.writeString(f.description, f.encoding); err != nil {
+		return bytes
+	}
+
+	if n, err := wr.write(f.data); n < len(f.data) || err != nil {
+		return bytes
+	}
 
 	return bytes
 }
