@@ -115,15 +115,37 @@ func (t Tag) Bytes() []byte {
 }
 
 // All frames
+func (t Tag) AllFrames() []Framer {
+	// Most of the time each ID will only have one frame
+	m := len(t.frames)
+	frames := make([]Framer, m)
+
+	i := 0
+	for _, frameSlice := range t.frames {
+		if i >= m {
+			frames = append(frames, frameSlice...)
+		}
+
+		n := copy(frames[i:], frameSlice)
+		i += n
+		if n < len(frameSlice) {
+			frames = append(frames, frameSlice[n:]...)
+		}
+	}
+
+	return frames
+}
+
+// All frames with specified ID
 func (t Tag) Frames(id string) []Framer {
 	if frames, ok := t.frames[id]; ok && frames != nil {
 		return frames
 	}
 
-	return nil
+	return []Framer{}
 }
 
-// First frame
+// First frame with specified ID
 func (t Tag) Frame(id string) Framer {
 	if frames := t.Frames(id); frames != nil {
 		return frames[0]
@@ -132,7 +154,7 @@ func (t Tag) Frame(id string) Framer {
 	return nil
 }
 
-// Delete and return all frames
+// Delete and return all frames with specified ID
 func (t *Tag) DeleteFrames(id string) []Framer {
 	frames := t.Frames(id)
 	if frames == nil {

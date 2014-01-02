@@ -22,8 +22,9 @@ type Tagger interface {
 	SetAlbum(string)
 	SetYear(string)
 	SetGenre(string)
-	Frame(string) Framer
+	AllFrames() []Framer
 	Frames(string) []Framer
+	Frame(string) Framer
 	DeleteFrames(string) []Framer
 	AddFrame(Framer)
 	Bytes() []byte
