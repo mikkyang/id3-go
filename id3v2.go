@@ -148,7 +148,7 @@ func (t Tag) Frames(id string) []Framer {
 
 // First frame with specified ID
 func (t Tag) Frame(id string) Framer {
-	if frames := t.Frames(id); frames != nil {
+	if frames := t.Frames(id); len(frames) != 0 {
 		return frames[0]
 	}
 
