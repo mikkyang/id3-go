@@ -109,7 +109,7 @@ func NewV22Frame(reader io.Reader) Framer {
 
 	h := FrameHead{
 		FrameType: t,
-		size:      size,
+		size:      uint32(size),
 	}
 
 	frameData := make([]byte, size)

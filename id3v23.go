@@ -137,7 +137,7 @@ func NewV23Frame(reader io.Reader) Framer {
 		FrameType:   t,
 		statusFlags: data[8],
 		formatFlags: data[9],
-		size:        size,
+		size:        uint32(size),
 	}
 
 	frameData := make([]byte, size)

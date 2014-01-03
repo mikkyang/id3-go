@@ -64,7 +64,7 @@ func NewTag(reader io.Reader) *Tag {
 		id := frame.Id()
 		t.frames[id] = append(t.frames[id], frame)
 
-		size -= t.frameHeaderSize + frame.Size()
+		size -= t.frameHeaderSize + int(frame.Size())
 	}
 
 	t.padding = uint(size)
@@ -82,7 +82,7 @@ func (t Tag) Size() int {
 	size := 0
 	for _, v := range t.frames {
 		for _, f := range v {
-			size += t.frameHeaderSize + f.Size()
+			size += t.frameHeaderSize + int(f.Size())
 		}
 	}
 
@@ -104,7 +104,7 @@ func (t Tag) Bytes() []byte {
 	index := 0
 	for _, v := range t.frames {
 		for _, f := range v {
-			size := t.frameHeaderSize + f.Size()
+			size := t.frameHeaderSize + int(f.Size())
 			copy(data[index:index+size], t.frameBytesConstructor(f))
 
 			index += size

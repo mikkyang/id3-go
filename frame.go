@@ -24,7 +24,7 @@ type FrameType struct {
 // This is the default type returned when creating frames
 type Framer interface {
 	Id() string
-	Size() int
+	Size() uint
 	StatusFlags() byte
 	FormatFlags() byte
 	String() string
@@ -38,15 +38,23 @@ type FrameHead struct {
 	FrameType
 	statusFlags byte
 	formatFlags byte
-	size        int32
+	size        uint32
 }
 
 func (h FrameHead) Id() string {
 	return h.id
 }
 
-func (h FrameHead) Size() int {
-	return int(h.size)
+func (h FrameHead) Size() uint {
+	return uint(h.size)
+}
+
+func (h FrameHead) changeSize(diff int) {
+	if diff >= 0 {
+		h.size += uint32(diff)
+	} else {
+		h.size -= uint32(-diff)
+	}
 }
 
 func (h FrameHead) StatusFlags() byte {
@@ -72,7 +80,8 @@ func (f DataFrame) Data() []byte {
 }
 
 func (f *DataFrame) SetData(b []byte) {
-	f.size += int32(len(b)) - f.size
+	diff := len(b) - len(f.data)
+	f.changeSize(diff)
 	f.data = b
 }
 
@@ -140,7 +149,7 @@ func (f *TextFrame) SetText(text string) error {
 		return err
 	}
 
-	f.size += int32(diff)
+	f.changeSize(diff)
 	f.text = text
 	return nil
 }
@@ -202,7 +211,7 @@ func (f *DescTextFrame) SetDescription(description string) error {
 		return err
 	}
 
-	f.size += int32(diff)
+	f.changeSize(diff)
 	f.description = description
 	return nil
 }
@@ -360,14 +369,16 @@ func (f ImageFrame) MIMEType() string {
 }
 
 func (f *ImageFrame) SetMIMEType(mimeType string) {
-	f.size += int32(len(mimeType)) - f.size
+	diff := len(mimeType) - len(f.mimeType)
 	if mimeType[len(mimeType)-1] != 0 {
 		nullTermBytes := append([]byte(mimeType), 0x00)
 		f.mimeType = string(nullTermBytes)
-		f.size += 1
+		diff += 1
 	} else {
 		f.mimeType = mimeType
 	}
+
+	f.changeSize(diff)
 }
 
 func (f ImageFrame) String() string {
