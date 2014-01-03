@@ -109,6 +109,11 @@ func (t Tag) Bytes() []byte {
 	return append(t.Header.Bytes(), data...)
 }
 
+// The amount of padding in the tag
+func (t Tag) Padding() uint {
+	return t.padding
+}
+
 // All frames
 func (t Tag) AllFrames() []Framer {
 	// Most of the time each ID will only have one frame

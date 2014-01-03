@@ -28,6 +28,7 @@ type Tagger interface {
 	DeleteFrames(string) []Framer
 	AddFrame(Framer)
 	Bytes() []byte
+	Padding() uint
 	Version() string
 }
 
