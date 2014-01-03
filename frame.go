@@ -29,6 +29,7 @@ type Framer interface {
 	FormatFlags() byte
 	String() string
 	Bytes() []byte
+	setOwner(*Tag)
 }
 
 // FrameHead represents the header of each frame
@@ -39,6 +40,7 @@ type FrameHead struct {
 	statusFlags byte
 	formatFlags byte
 	size        uint32
+	owner       *Tag
 }
 
 func (h FrameHead) Id() string {
@@ -63,6 +65,10 @@ func (h FrameHead) StatusFlags() byte {
 
 func (h FrameHead) FormatFlags() byte {
 	return h.formatFlags
+}
+
+func (h *FrameHead) setOwner(t *Tag) {
+	h.owner = t
 }
 
 // DataFrame is the default frame for binary data
