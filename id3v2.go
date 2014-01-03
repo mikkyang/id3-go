@@ -77,25 +77,19 @@ func NewTag(reader io.Reader) *Tag {
 	return t
 }
 
-// Size of the tag
-// Recalculated as frames and padding can be changed
-func (t Tag) Size() int {
-	size := 0
-	for _, v := range t.frames {
-		for _, f := range v {
-			size += t.frameHeaderSize + int(f.Size())
-		}
-	}
+// Real size of the tag
+func (t Tag) RealSize() int {
+	size := uint(t.Header.Size()) - t.padding
+	return int(size)
+}
 
-	headerSize := t.Header.Size()
-	if padding := headerSize - size; padding < 0 {
+func (t *Tag) changeSize(diff int) {
+	if d := int(t.padding) - diff; d < 0 {
 		t.padding = 0
 		head := t.Header.(Head)
-		head.size = int32(size)
-		return size
+		head.size += int32(d)
 	} else {
-		t.padding = uint(padding)
-		return headerSize
+		t.padding = uint(d)
 	}
 }
 
@@ -162,6 +156,13 @@ func (t *Tag) DeleteFrames(id string) []Framer {
 		return nil
 	}
 
+	diff := 0
+	for _, frame := range frames {
+		frame.setOwner(nil)
+		diff += t.frameHeaderSize + int(frame.Size())
+	}
+	t.changeSize(-diff)
+
 	delete(t.frames, id)
 
 	return frames
@@ -169,8 +170,11 @@ func (t *Tag) DeleteFrames(id string) []Framer {
 
 // Add frame
 func (t *Tag) AddFrame(frame Framer) {
+	t.changeSize(int(frame.Size()))
+
 	id := frame.Id()
 	t.frames[id] = append(t.frames[id], frame)
+	frame.setOwner(t)
 }
 
 // Header represents the useful information contained in the data

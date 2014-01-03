@@ -57,6 +57,10 @@ func (h FrameHead) changeSize(diff int) {
 	} else {
 		h.size -= uint32(-diff)
 	}
+
+	if h.owner != nil {
+		h.owner.changeSize(diff)
+	}
 }
 
 func (h FrameHead) StatusFlags() byte {
