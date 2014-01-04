@@ -24,9 +24,9 @@ type Tag struct {
 }
 
 // Creates a new tag
-func NewTag(reader io.Reader) *Tag {
+func ParseTag(reader io.Reader) *Tag {
 	t := &Tag{
-		Header: NewHeader(reader),
+		Header: ParseHeader(reader),
 		frames: make(map[string][]Framer),
 	}
 
@@ -37,17 +37,17 @@ func NewTag(reader io.Reader) *Tag {
 	switch t.Header.Version() {
 	case "2.2.0":
 		t.commonMap = V22CommonFrame
-		t.frameConstructor = NewV22Frame
+		t.frameConstructor = ParseV22Frame
 		t.frameHeaderSize = V22FrameHeaderSize
 		t.frameBytesConstructor = V22Bytes
 	case "2.3.0":
 		t.commonMap = V23CommonFrame
-		t.frameConstructor = NewV23Frame
+		t.frameConstructor = ParseV23Frame
 		t.frameHeaderSize = FrameHeaderSize
 		t.frameBytesConstructor = V23Bytes
 	default:
 		t.commonMap = V23CommonFrame
-		t.frameConstructor = NewV23Frame
+		t.frameConstructor = ParseV23Frame
 		t.frameHeaderSize = FrameHeaderSize
 		t.frameBytesConstructor = V23Bytes
 	}
@@ -267,7 +267,7 @@ func (t *Tag) setTextFrameText(id, text string) {
 	}
 }
 
-func NewHeader(reader io.Reader) Header {
+func ParseHeader(reader io.Reader) Header {
 	data := make([]byte, HeaderSize)
 	n, err := io.ReadFull(reader, data)
 	if n < HeaderSize || err != nil || string(data[:3]) != "ID3" {

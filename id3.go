@@ -50,7 +50,7 @@ func Open(name string) (*File, error) {
 	}
 
 	rd := bufio.NewReader(fi)
-	tag := NewTag(rd)
+	tag := ParseTag(rd)
 	data, err := ioutil.ReadAll(rd)
 	if err != nil {
 		return nil, err

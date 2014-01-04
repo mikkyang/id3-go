@@ -81,7 +81,7 @@ type DataFrame struct {
 	data []byte
 }
 
-func NewDataFrame(head FrameHead, data []byte) Framer {
+func ParseDataFrame(head FrameHead, data []byte) Framer {
 	return &DataFrame{head, data}
 }
 
@@ -119,7 +119,7 @@ type TextFrame struct {
 	text     string
 }
 
-func NewTextFrame(head FrameHead, data []byte) Framer {
+func ParseTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &TextFrame{FrameHead: head}
 	rd := newReader(data)
@@ -191,7 +191,7 @@ type DescTextFrame struct {
 }
 
 // DescTextFrame represents frames that contain encoded text and descriptions
-func NewDescTextFrame(head FrameHead, data []byte) Framer {
+func ParseDescTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &DescTextFrame{FrameHead: head}
 	rd := newReader(data)
@@ -257,7 +257,7 @@ type UnsynchTextFrame struct {
 	language string
 }
 
-func NewUnsynchTextFrame(head FrameHead, data []byte) Framer {
+func ParseUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &UnsynchTextFrame{FrameHead: head}
 	rd := newReader(data)
@@ -332,7 +332,7 @@ type ImageFrame struct {
 	description string
 }
 
-func NewImageFrame(head FrameHead, data []byte) Framer {
+func ParseImageFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &ImageFrame{FrameHead: head}
 	rd := newReader(data)
