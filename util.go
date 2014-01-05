@@ -127,16 +127,16 @@ func afterNullIndex(data []byte, encoding byte) int {
 	return -1
 }
 
-func encodedDiff(encoding byte, a, b string) (int, error) {
-	ea, err := Encoders[encoding].ConvertString(a)
+func encodedDiff(ea byte, a string, eb byte, b string) (int, error) {
+	encodedStringA, err := Encoders[ea].ConvertString(a)
 	if err != nil {
 		return 0, err
 	}
 
-	eb, err := Encoders[encoding].ConvertString(b)
+	encodedStringB, err := Encoders[eb].ConvertString(b)
 	if err != nil {
 		return 0, err
 	}
 
-	return len(ea) - len(eb), nil
+	return len(encodedStringA) - len(encodedStringB), nil
 }

@@ -163,7 +163,7 @@ func (f TextFrame) Text() string {
 }
 
 func (f *TextFrame) SetText(text string) error {
-	diff, err := encodedDiff(f.encoding, text, f.text)
+	diff, err := encodedDiff(f.encoding, text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (f DescTextFrame) Description() string {
 }
 
 func (f *DescTextFrame) SetDescription(description string) error {
-	diff, err := encodedDiff(f.encoding, description, f.description)
+	diff, err := encodedDiff(f.encoding, description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
