@@ -212,7 +212,6 @@ func (f TextFrame) Bytes() []byte {
 }
 
 type DescTextFrame struct {
-	FrameHead
 	TextFrame
 	description string
 }
@@ -220,7 +219,8 @@ type DescTextFrame struct {
 // DescTextFrame represents frames that contain encoded text and descriptions
 func ParseDescTextFrame(head FrameHead, data []byte) Framer {
 	var err error
-	f := &DescTextFrame{FrameHead: head}
+	f := new(DescTextFrame)
+	f.FrameHead = head
 	rd := newReader(data)
 
 	if f.encoding, err = rd.readByte(); err != nil {
@@ -300,14 +300,14 @@ func (f DescTextFrame) Bytes() []byte {
 
 // UnsynchTextFrame represents frames that contain unsynchronized text
 type UnsynchTextFrame struct {
-	FrameHead
 	DescTextFrame
 	language string
 }
 
 func ParseUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	var err error
-	f := &UnsynchTextFrame{FrameHead: head}
+	f := new(UnsynchTextFrame)
+	f.FrameHead = head
 	rd := newReader(data)
 
 	if f.encoding, err = rd.readByte(); err != nil {
@@ -372,7 +372,6 @@ func (f UnsynchTextFrame) Bytes() []byte {
 
 // ImageFrame represent frames that have media attached
 type ImageFrame struct {
-	FrameHead
 	DataFrame
 	encoding    byte
 	mimeType    string
@@ -382,7 +381,8 @@ type ImageFrame struct {
 
 func ParseImageFrame(head FrameHead, data []byte) Framer {
 	var err error
-	f := &ImageFrame{FrameHead: head}
+	f := new(ImageFrame)
+	f.FrameHead = head
 	rd := newReader(data)
 
 	if f.encoding, err = rd.readByte(); err != nil {
