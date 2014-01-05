@@ -216,6 +216,16 @@ type DescTextFrame struct {
 	description string
 }
 
+func NewDescTextFrame(ft FrameType, desc, text string) *DescTextFrame {
+	f := NewTextFrame(ft, text)
+	f.size += uint32(len(desc))
+
+	return &DescTextFrame{
+		TextFrame:   *f,
+		description: desc,
+	}
+}
+
 // DescTextFrame represents frames that contain encoded text and descriptions
 func ParseDescTextFrame(head FrameHead, data []byte) Framer {
 	var err error
