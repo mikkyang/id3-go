@@ -86,8 +86,8 @@ func (t Tag) RealSize() int {
 func (t *Tag) changeSize(diff int) {
 	if d := int(t.padding) - diff; d < 0 {
 		t.padding = 0
-		head := t.Header.(Head)
-		head.size += int32(d)
+		head := t.Header.(*Head)
+		head.size += int32(-d)
 	} else {
 		t.padding = uint(d)
 	}
@@ -175,7 +175,7 @@ func (t *Tag) DeleteFrames(id string) []Framer {
 
 // Add frame
 func (t *Tag) AddFrame(frame Framer) {
-	t.changeSize(int(frame.Size()))
+	t.changeSize(t.frameHeaderSize + int(frame.Size()))
 
 	id := frame.Id()
 	t.frames[id] = append(t.frames[id], frame)
@@ -279,7 +279,7 @@ func ParseHeader(reader io.Reader) Header {
 		return nil
 	}
 
-	return Head{
+	return &Head{
 		version:  data[3],
 		revision: data[4],
 		flags:    data[5],
