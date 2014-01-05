@@ -314,6 +314,16 @@ type UnsynchTextFrame struct {
 	language string
 }
 
+func NewUnsynchTextFrame(ft FrameType, desc, text string) *UnsynchTextFrame {
+	f := NewDescTextFrame(ft, desc, text)
+	f.size += uint32(3)
+
+	return &UnsynchTextFrame{
+		DescTextFrame: *f,
+		language:      "eng",
+	}
+}
+
 func ParseUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := new(UnsynchTextFrame)
