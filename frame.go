@@ -128,6 +128,18 @@ type TextFrame struct {
 	text     string
 }
 
+func NewTextFrame(ft FrameType, text string) *TextFrame {
+	head := FrameHead{
+		FrameType: ft,
+		size:      uint32(1 + len(text)),
+	}
+
+	return &TextFrame{
+		FrameHead: head,
+		text:      text,
+	}
+}
+
 func ParseTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &TextFrame{FrameHead: head}
