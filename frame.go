@@ -81,6 +81,15 @@ type DataFrame struct {
 	data []byte
 }
 
+func NewDataFrame(ft FrameType, data []byte) *DataFrame {
+	head := FrameHead{
+		FrameType: ft,
+		size:      uint32(len(data)),
+	}
+
+	return &DataFrame{head, data}
+}
+
 func ParseDataFrame(head FrameHead, data []byte) Framer {
 	return &DataFrame{head, data}
 }
