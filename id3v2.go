@@ -69,9 +69,13 @@ func ParseTag(reader io.Reader) *Tag {
 	}
 
 	t.padding = uint(size)
-	nAdvance := int(t.padding) - t.frameHeaderSize
-	if n, err := io.ReadFull(reader, make([]byte, nAdvance)); n != nAdvance || err != nil {
-		return nil
+
+	if int(t.padding) > t.frameHeaderSize {
+		// Psuedo-unread bytes for last attempted frame
+		nAdvance := int(t.padding) - t.frameHeaderSize
+		if n, err := io.ReadFull(reader, make([]byte, nAdvance)); n != nAdvance || err != nil {
+			return nil
+		}
 	}
 
 	return t
