@@ -4,8 +4,7 @@
 package id3
 
 import (
-	"bufio"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -37,45 +36,88 @@ type Tagger interface {
 type File struct {
 	Tagger
 	originalSize int
-	name         string
-	data         []byte
+	file         *os.File
 }
 
 // Opens a new tagged file
 func Open(name string) (*File, error) {
-	fi, err := os.Open(name)
-	defer fi.Close()
+	fi, err := os.OpenFile(os.Args[1], os.O_RDWR, 0666)
 	if err != nil {
 		return nil, err
 	}
 
-	rd := bufio.NewReader(fi)
-	tag := ParseTag(rd)
-	data, err := ioutil.ReadAll(rd)
-	if err != nil {
-		return nil, err
-	}
+	tag := ParseTag(fi)
 
-	return &File{
-		tag,
-		tag.Size(),
-		name,
-		data,
-	}, nil
+	return &File{tag, tag.Size(), fi}, nil
 }
 
 // Saves any edits to the tagged file
-func (f *File) Close() {
-	fi, err := os.OpenFile(f.name, os.O_RDWR, 0666)
-	defer fi.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	wr := bufio.NewWriter(fi)
-	wr.Write(f.Tagger.Bytes())
+func (f *File) Close() error {
+	defer f.file.Close()
 
 	if f.Size() > f.originalSize {
-		wr.Write(f.data)
+		stat, err := f.file.Stat()
+		if err != nil {
+			return err
+		}
+
+		start := f.originalSize + HeaderSize
+		end := stat.Size()
+		offset := f.Tagger.Size() - f.originalSize
+
+		err = f.shiftBytesBack(int64(start), end, int64(offset))
+		if err != nil {
+			return err
+		}
 	}
+
+	if _, err := f.file.WriteAt(f.Tagger.Bytes(), 0); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *File) shiftBytesBack(start, end, offset int64) error {
+	wrBuf := make([]byte, offset)
+	rdBuf := make([]byte, offset)
+
+	wrOffset := offset
+	rdOffset := start
+
+	rn, err := f.file.ReadAt(wrBuf, rdOffset)
+	if err != nil && err != io.EOF {
+		panic(err)
+	}
+	rdOffset += int64(rn)
+
+	for {
+		if rdOffset >= end {
+			break
+		}
+
+		n, err := f.file.ReadAt(rdBuf, rdOffset)
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		if rdOffset+int64(n) > end {
+			n = int(end - rdOffset)
+		}
+
+		if _, err := f.file.WriteAt(wrBuf[:rn], wrOffset); err != nil {
+			return err
+		}
+
+		rdOffset += int64(n)
+		wrOffset += int64(rn)
+		copy(wrBuf, rdBuf)
+		rn = n
+	}
+
+	if _, err := f.file.WriteAt(wrBuf[:rn], wrOffset); err != nil {
+		return err
+	}
+
+	return nil
 }
