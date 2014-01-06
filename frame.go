@@ -51,7 +51,7 @@ func (h FrameHead) Size() uint {
 	return uint(h.size)
 }
 
-func (h FrameHead) changeSize(diff int) {
+func (h *FrameHead) changeSize(diff int) {
 	if diff >= 0 {
 		h.size += uint32(diff)
 	} else {
