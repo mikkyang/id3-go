@@ -1,7 +1,7 @@
 // Copyright 2013 Michael Yang. All rights reserved.
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
-package id3
+package v2
 
 import (
 	"errors"

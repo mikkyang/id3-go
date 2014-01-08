@@ -4,6 +4,7 @@
 package id3
 
 import (
+	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"os"
 )
@@ -21,11 +22,11 @@ type Tagger interface {
 	SetAlbum(string)
 	SetYear(string)
 	SetGenre(string)
-	AllFrames() []Framer
-	Frames(string) []Framer
-	Frame(string) Framer
-	DeleteFrames(string) []Framer
-	AddFrame(Framer)
+	AllFrames() []v2.Framer
+	Frames(string) []v2.Framer
+	Frame(string) v2.Framer
+	DeleteFrames(string) []v2.Framer
+	AddFrame(v2.Framer)
 	Bytes() []byte
 	Padding() uint
 	Size() int
@@ -46,7 +47,7 @@ func Open(name string) (*File, error) {
 		return nil, err
 	}
 
-	tag := ParseTag(fi)
+	tag := v2.ParseTag(fi)
 
 	return &File{tag, tag.Size(), fi}, nil
 }
@@ -61,7 +62,7 @@ func (f *File) Close() error {
 			return err
 		}
 
-		start := f.originalSize + HeaderSize
+		start := f.originalSize + v2.HeaderSize
 		end := stat.Size()
 		offset := f.Tagger.Size() - f.originalSize
 
