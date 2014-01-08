@@ -4,6 +4,8 @@
 package id3
 
 import (
+	"errors"
+	v1 "github.com/mikkyang/id3-go/v1"
 	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"os"
@@ -40,6 +42,10 @@ type File struct {
 	file         *os.File
 }
 
+const (
+	fileEndFlag = 2
+)
+
 // Opens a new tagged file
 func Open(name string) (*File, error) {
 	fi, err := os.OpenFile(os.Args[1], os.O_RDWR, 0666)
@@ -47,33 +53,50 @@ func Open(name string) (*File, error) {
 		return nil, err
 	}
 
-	tag := v2.ParseTag(fi)
+	file := &File{file: fi}
 
-	return &File{tag, tag.Size(), fi}, nil
+	if v2Tag := v2.ParseTag(fi); v2Tag != nil {
+		file.Tagger = v2Tag
+		file.originalSize = v2Tag.Size()
+	} else if v1Tag := v1.ParseTag(fi); v1Tag != nil {
+		file.Tagger = v1Tag
+	} else {
+		return nil, errors.New("Open: unknown tag format")
+	}
+
+	return file, nil
 }
 
 // Saves any edits to the tagged file
 func (f *File) Close() error {
 	defer f.file.Close()
 
-	if f.Size() > f.originalSize {
-		stat, err := f.file.Stat()
-		if err != nil {
-			return err
+	switch f.Tagger.(type) {
+	case (*v1.Tag):
+		f.file.Seek(-v1.TagSize, fileEndFlag)
+		f.file.Write(f.Tagger.Bytes())
+	case (*v2.Tag):
+		if f.Size() > f.originalSize {
+			stat, err := f.file.Stat()
+			if err != nil {
+				return err
+			}
+
+			start := f.originalSize + v2.HeaderSize
+			end := stat.Size()
+			offset := f.Tagger.Size() - f.originalSize
+
+			err = f.shiftBytesBack(int64(start), end, int64(offset))
+			if err != nil {
+				return err
+			}
 		}
 
-		start := f.originalSize + v2.HeaderSize
-		end := stat.Size()
-		offset := f.Tagger.Size() - f.originalSize
-
-		err = f.shiftBytesBack(int64(start), end, int64(offset))
-		if err != nil {
+		if _, err := f.file.WriteAt(f.Tagger.Bytes(), 0); err != nil {
 			return err
 		}
-	}
-
-	if _, err := f.file.WriteAt(f.Tagger.Bytes(), 0); err != nil {
-		return err
+	default:
+		return errors.New("Close: unknown tag version")
 	}
 
 	return nil
