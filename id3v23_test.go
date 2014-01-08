@@ -8,11 +8,8 @@ import (
 	"testing"
 )
 
-var (
-	textData = []byte{84, 80, 69, 49, 0, 0, 0, 13, 0, 0, 0, 77, 105, 99, 104, 97, 101, 108, 32, 89, 97, 110, 103}
-)
-
 func TestV23Frame(t *testing.T) {
+	textData := []byte{84, 80, 69, 49, 0, 0, 0, 13, 0, 0, 0, 77, 105, 99, 104, 97, 101, 108, 32, 89, 97, 110, 103}
 	frame := ParseV23Frame(bytes.NewReader(textData))
 	textFrame, ok := frame.(*TextFrame)
 	if !ok {
