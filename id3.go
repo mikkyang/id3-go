@@ -72,8 +72,13 @@ func (f *File) Close() error {
 
 	switch f.Tagger.(type) {
 	case (*v1.Tag):
-		f.file.Seek(-v1.TagSize, fileEndFlag)
-		f.file.Write(f.Tagger.Bytes())
+		if _, err := f.file.Seek(-v1.TagSize, fileEndFlag); err != nil {
+			return err
+		}
+
+		if _, err := f.file.Write(f.Tagger.Bytes()); err != nil {
+			return err
+		}
 	case (*v2.Tag):
 		if f.Size() > f.originalSize {
 			stat, err := f.file.Stat()
@@ -85,8 +90,7 @@ func (f *File) Close() error {
 			end := stat.Size()
 			offset := f.Tagger.Size() - f.originalSize
 
-			err = shiftBytesBack(f.file, int64(start), end, int64(offset))
-			if err != nil {
+			if err := shiftBytesBack(f.file, int64(start), end, int64(offset)); err != nil {
 				return err
 			}
 		}
