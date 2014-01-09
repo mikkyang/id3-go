@@ -48,7 +48,7 @@ const (
 
 // Opens a new tagged file
 func Open(name string) (*File, error) {
-	fi, err := os.OpenFile(os.Args[1], os.O_RDWR, 0666)
+	fi, err := os.OpenFile(name, os.O_RDWR, 0666)
 	if err != nil {
 		return nil, err
 	}
