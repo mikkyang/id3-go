@@ -7,7 +7,6 @@ import (
 	"errors"
 	v1 "github.com/mikkyang/id3-go/v1"
 	v2 "github.com/mikkyang/id3-go/v2"
-	"io"
 	"os"
 )
 
@@ -86,7 +85,7 @@ func (f *File) Close() error {
 			end := stat.Size()
 			offset := f.Tagger.Size() - f.originalSize
 
-			err = f.shiftBytesBack(int64(start), end, int64(offset))
+			err = shiftBytesBack(f.file, int64(start), end, int64(offset))
 			if err != nil {
 				return err
 			}
@@ -97,50 +96,6 @@ func (f *File) Close() error {
 		}
 	default:
 		return errors.New("Close: unknown tag version")
-	}
-
-	return nil
-}
-
-func (f *File) shiftBytesBack(start, end, offset int64) error {
-	wrBuf := make([]byte, offset)
-	rdBuf := make([]byte, offset)
-
-	wrOffset := offset
-	rdOffset := start
-
-	rn, err := f.file.ReadAt(wrBuf, rdOffset)
-	if err != nil && err != io.EOF {
-		panic(err)
-	}
-	rdOffset += int64(rn)
-
-	for {
-		if rdOffset >= end {
-			break
-		}
-
-		n, err := f.file.ReadAt(rdBuf, rdOffset)
-		if err != nil && err != io.EOF {
-			return err
-		}
-
-		if rdOffset+int64(n) > end {
-			n = int(end - rdOffset)
-		}
-
-		if _, err := f.file.WriteAt(wrBuf[:rn], wrOffset); err != nil {
-			return err
-		}
-
-		rdOffset += int64(n)
-		wrOffset += int64(rn)
-		copy(wrBuf, rdBuf)
-		rn = n
-	}
-
-	if _, err := f.file.WriteAt(wrBuf[:rn], wrOffset); err != nil {
-		return err
 	}
 
 	return nil
