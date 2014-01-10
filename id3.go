@@ -71,10 +71,6 @@ func (f *File) Close() error {
 		if _, err := f.file.Seek(-v1.TagSize, os.SEEK_END); err != nil {
 			return err
 		}
-
-		if _, err := f.file.Write(f.Tagger.Bytes()); err != nil {
-			return err
-		}
 	case (*v2.Tag):
 		if f.Size() > f.originalSize {
 			stat, err := f.file.Stat()
@@ -91,11 +87,15 @@ func (f *File) Close() error {
 			}
 		}
 
-		if _, err := f.file.WriteAt(f.Tagger.Bytes(), 0); err != nil {
+		if _, err := f.file.Seek(0, os.SEEK_SET); err != nil {
 			return err
 		}
 	default:
 		return errors.New("Close: unknown tag version")
+	}
+
+	if _, err := f.file.Write(f.Tagger.Bytes()); err != nil {
+		return err
 	}
 
 	return nil
