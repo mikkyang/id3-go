@@ -14,7 +14,7 @@ const (
 
 // Tag represents an ID3v2 tag
 type Tag struct {
-	Header
+	*Header
 	frames                map[string][]Framer
 	padding               uint
 	commonMap             map[string]string
@@ -34,13 +34,13 @@ func ParseTag(reader io.Reader) *Tag {
 		return nil
 	}
 
-	switch t.Header.Version() {
-	case "2.2.0":
+	switch t.version {
+	case 2:
 		t.commonMap = V22CommonFrame
 		t.frameConstructor = ParseV22Frame
 		t.frameHeaderSize = V22FrameHeaderSize
 		t.frameBytesConstructor = V22Bytes
-	case "2.3.0":
+	case 3:
 		t.commonMap = V23CommonFrame
 		t.frameConstructor = ParseV23Frame
 		t.frameHeaderSize = FrameHeaderSize
@@ -53,7 +53,7 @@ func ParseTag(reader io.Reader) *Tag {
 	}
 
 	var frame Framer
-	size := t.Header.Size()
+	size := int(t.size)
 	for size > 0 {
 		frame = t.frameConstructor(reader)
 
@@ -83,15 +83,14 @@ func ParseTag(reader io.Reader) *Tag {
 
 // Real size of the tag
 func (t Tag) RealSize() int {
-	size := uint(t.Header.Size()) - t.padding
+	size := uint(t.size) - t.padding
 	return int(size)
 }
 
 func (t *Tag) changeSize(diff int) {
 	if d := int(t.padding) - diff; d < 0 {
 		t.padding = 0
-		head := t.Header.(*Head)
-		head.size += int32(-d)
+		t.size += int32(-d)
 	} else {
 		t.padding = uint(d)
 	}
@@ -186,13 +185,6 @@ func (t *Tag) AddFrame(frame Framer) {
 	frame.setOwner(t)
 }
 
-// Header represents the useful information contained in the data
-type Header interface {
-	Version() string
-	Size() int
-	Bytes() []byte
-}
-
 func (t Tag) Title() string {
 	return t.textFrameText(t.commonMap["Title"])
 }
@@ -271,7 +263,7 @@ func (t *Tag) setTextFrameText(id, text string) {
 	}
 }
 
-func ParseHeader(reader io.Reader) Header {
+func ParseHeader(reader io.Reader) *Header {
 	data := make([]byte, HeaderSize)
 	n, err := io.ReadFull(reader, data)
 	if n < HeaderSize || err != nil || string(data[:3]) != "ID3" {
@@ -283,7 +275,7 @@ func ParseHeader(reader io.Reader) Header {
 		return nil
 	}
 
-	header := &Head{
+	header := &Header{
 		version:  data[3],
 		revision: data[4],
 		flags:    data[5],
@@ -303,8 +295,8 @@ func ParseHeader(reader io.Reader) Header {
 	return header
 }
 
-// Head represents the data of the header of the entire tag
-type Head struct {
+// Header represents the data of the header of the entire tag
+type Header struct {
 	version, revision byte
 	flags             byte
 	unsynchronization bool
@@ -314,15 +306,15 @@ type Head struct {
 	size              int32
 }
 
-func (h Head) Version() string {
+func (h Header) Version() string {
 	return fmt.Sprintf("2.%d.%d", h.version, h.revision)
 }
 
-func (h Head) Size() int {
+func (h Header) Size() int {
 	return int(h.size)
 }
 
-func (h Head) Bytes() []byte {
+func (h Header) Bytes() []byte {
 	data := make([]byte, HeaderSize)
 
 	copy(data[:3], []byte("ID3"))
