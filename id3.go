@@ -41,10 +41,6 @@ type File struct {
 	file         *os.File
 }
 
-const (
-	fileEndFlag = 2
-)
-
 // Opens a new tagged file
 func Open(name string) (*File, error) {
 	fi, err := os.OpenFile(name, os.O_RDWR, 0666)
@@ -72,7 +68,7 @@ func (f *File) Close() error {
 
 	switch f.Tagger.(type) {
 	case (*v1.Tag):
-		if _, err := f.file.Seek(-v1.TagSize, fileEndFlag); err != nil {
+		if _, err := f.file.Seek(-v1.TagSize, os.SEEK_END); err != nil {
 			return err
 		}
 

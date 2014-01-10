@@ -6,11 +6,11 @@ package v1
 import (
 	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
+	"os"
 )
 
 const (
-	TagSize     = 128
-	fileEndFlag = 2
+	TagSize = 128
 )
 
 var (
@@ -45,7 +45,7 @@ type Tag struct {
 }
 
 func ParseTag(readSeeker io.ReadSeeker) *Tag {
-	readSeeker.Seek(-TagSize, fileEndFlag)
+	readSeeker.Seek(-TagSize, os.SEEK_END)
 
 	data := make([]byte, TagSize)
 	n, err := io.ReadFull(readSeeker, data)
