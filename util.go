@@ -8,7 +8,13 @@ import (
 	"os"
 )
 
-func shiftBytesBack(file *os.File, start, end, offset int64) error {
+func shiftBytesBack(file *os.File, start, offset int64) error {
+	stat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	end := stat.Size()
+
 	wrBuf := make([]byte, offset)
 	rdBuf := make([]byte, offset)
 

@@ -73,16 +73,10 @@ func (f *File) Close() error {
 		}
 	case (*v2.Tag):
 		if f.Size() > f.originalSize {
-			stat, err := f.file.Stat()
-			if err != nil {
-				return err
-			}
+			start := int64(f.originalSize + v2.HeaderSize)
+			offset := int64(f.Tagger.Size() - f.originalSize)
 
-			start := f.originalSize + v2.HeaderSize
-			end := stat.Size()
-			offset := f.Tagger.Size() - f.originalSize
-
-			if err := shiftBytesBack(f.file, int64(start), end, int64(offset)); err != nil {
+			if err := shiftBytesBack(f.file, start, offset); err != nil {
 				return err
 			}
 		}
