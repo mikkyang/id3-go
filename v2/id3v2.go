@@ -283,18 +283,34 @@ func ParseHeader(reader io.Reader) Header {
 		return nil
 	}
 
-	return &Head{
+	header := &Head{
 		version:  data[3],
 		revision: data[4],
 		flags:    data[5],
 		size:     size,
 	}
+
+	switch header.version {
+	case 2:
+		header.unsynchronization = (header.flags & 1 << 7) == 1
+		header.compression = (header.flags & 1 << 6) == 1
+	case 3:
+		header.unsynchronization = (header.flags & 1 << 7) == 1
+		header.extendedHeader = (header.flags & 1 << 6) == 1
+		header.experimental = (header.flags & 1 << 5) == 1
+	}
+
+	return header
 }
 
 // Head represents the data of the header of the entire tag
 type Head struct {
 	version, revision byte
 	flags             byte
+	unsynchronization bool
+	compression       bool
+	experimental      bool
+	extendedHeader    bool
 	size              int32
 }
 
