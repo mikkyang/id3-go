@@ -4,6 +4,7 @@
 package v2
 
 import (
+	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
 )
 
@@ -102,7 +103,7 @@ func ParseV22Frame(reader io.Reader) Framer {
 		return nil
 	}
 
-	size, err := normint(data[3:6])
+	size, err := encodedbytes.NormInt(data[3:6])
 	if err != nil {
 		return nil
 	}
@@ -124,7 +125,7 @@ func V22Bytes(f Framer) []byte {
 	headBytes := make([]byte, V22FrameHeaderSize)
 
 	copy(headBytes[:3], []byte(f.Id()))
-	copy(headBytes[3:6], normbytes(int32(f.Size()))[1:])
+	copy(headBytes[3:6], encodedbytes.NormBytes(int32(f.Size()))[1:])
 
 	return append(headBytes, f.Bytes()...)
 }

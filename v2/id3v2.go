@@ -5,6 +5,7 @@ package v2
 
 import (
 	"fmt"
+	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
 )
 
@@ -282,7 +283,7 @@ func ParseHeader(reader io.Reader) *Header {
 		return nil
 	}
 
-	size, err := synchint(data[6:])
+	size, err := encodedbytes.SynchInt(data[6:])
 	if err != nil {
 		return nil
 	}
@@ -330,7 +331,7 @@ func (h Header) Bytes() []byte {
 	data := make([]byte, HeaderSize)
 
 	copy(data[:3], []byte("ID3"))
-	copy(data[6:], synchbytes(h.size))
+	copy(data[6:], encodedbytes.SynchBytes(h.size))
 	data[3] = h.version
 	data[4] = h.revision
 	data[5] = h.flags

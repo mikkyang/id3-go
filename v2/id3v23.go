@@ -4,6 +4,7 @@
 package v2
 
 import (
+	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
 )
 
@@ -128,7 +129,7 @@ func ParseV23Frame(reader io.Reader) Framer {
 		return nil
 	}
 
-	size, err := normint(data[4:8])
+	size, err := encodedbytes.NormInt(data[4:8])
 	if err != nil {
 		return nil
 	}
@@ -152,7 +153,7 @@ func V23Bytes(f Framer) []byte {
 	headBytes := make([]byte, FrameHeaderSize)
 
 	copy(headBytes[:4], []byte(f.Id()))
-	copy(headBytes[4:8], normbytes(int32(f.Size())))
+	copy(headBytes[4:8], encodedbytes.NormBytes(int32(f.Size())))
 	headBytes[8] = f.StatusFlags()
 	headBytes[9] = f.FormatFlags()
 

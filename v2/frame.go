@@ -6,6 +6,7 @@ package v2
 import (
 	"errors"
 	"fmt"
+	"github.com/mikkyang/id3-go/encodedbytes"
 )
 
 const (
@@ -143,13 +144,13 @@ func NewTextFrame(ft FrameType, text string) *TextFrame {
 func ParseTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := &TextFrame{FrameHead: head}
-	rd := newReader(data)
+	rd := encodedbytes.NewReader(data)
 
-	if f.encoding, err = rd.readByte(); err != nil {
+	if f.encoding, err = rd.ReadByte(); err != nil {
 		return nil
 	}
 
-	if f.text, err = rd.readRestString(f.encoding); err != nil {
+	if f.text, err = rd.ReadRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -157,16 +158,16 @@ func ParseTextFrame(head FrameHead, data []byte) Framer {
 }
 
 func (f TextFrame) Encoding() string {
-	return encodingForIndex(f.encoding)
+	return encodedbytes.EncodingForIndex(f.encoding)
 }
 
 func (f *TextFrame) SetEncoding(encoding string) error {
-	i := byte(indexForEncoding(encoding))
+	i := byte(encodedbytes.IndexForEncoding(encoding))
 	if i < 0 {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedDiff(f.encoding, f.text, i, f.text)
+	diff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
 	if err != nil {
 		return err
 	}
@@ -181,7 +182,7 @@ func (f TextFrame) Text() string {
 }
 
 func (f *TextFrame) SetText(text string) error {
-	diff, err := encodedDiff(f.encoding, text, f.encoding, f.text)
+	diff, err := encodedbytes.EncodedDiff(f.encoding, text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
@@ -198,13 +199,13 @@ func (f TextFrame) String() string {
 func (f TextFrame) Bytes() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
-	wr := newWriter(bytes)
+	wr := encodedbytes.NewWriter(bytes)
 
-	if err = wr.writeByte(f.encoding); err != nil {
+	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.text, f.encoding); err != nil {
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
 	}
 
@@ -231,17 +232,17 @@ func ParseDescTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := new(DescTextFrame)
 	f.FrameHead = head
-	rd := newReader(data)
+	rd := encodedbytes.NewReader(data)
 
-	if f.encoding, err = rd.readByte(); err != nil {
+	if f.encoding, err = rd.ReadByte(); err != nil {
 		return nil
 	}
 
-	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+	if f.description, err = rd.ReadNullTermString(f.encoding); err != nil {
 		return nil
 	}
 
-	if f.text, err = rd.readRestString(f.encoding); err != nil {
+	if f.text, err = rd.ReadRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -253,7 +254,7 @@ func (f DescTextFrame) Description() string {
 }
 
 func (f *DescTextFrame) SetDescription(description string) error {
-	diff, err := encodedDiff(f.encoding, description, f.encoding, f.description)
+	diff, err := encodedbytes.EncodedDiff(f.encoding, description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
@@ -264,17 +265,17 @@ func (f *DescTextFrame) SetDescription(description string) error {
 }
 
 func (f *DescTextFrame) SetEncoding(encoding string) error {
-	i := byte(indexForEncoding(encoding))
+	i := byte(encodedbytes.IndexForEncoding(encoding))
 	if i < 0 {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	descDiff, err := encodedDiff(f.encoding, f.text, i, f.text)
+	descDiff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
 	if err != nil {
 		return err
 	}
 
-	textDiff, err := encodedDiff(f.encoding, f.description, i, f.description)
+	textDiff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
 	if err != nil {
 		return err
 	}
@@ -291,17 +292,17 @@ func (f DescTextFrame) String() string {
 func (f DescTextFrame) Bytes() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
-	wr := newWriter(bytes)
+	wr := encodedbytes.NewWriter(bytes)
 
-	if err = wr.writeByte(f.encoding); err != nil {
+	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.description, f.encoding); err != nil {
+	if err = wr.WriteString(f.description, f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.text, f.encoding); err != nil {
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
 	}
 
@@ -328,21 +329,21 @@ func ParseUnsynchTextFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := new(UnsynchTextFrame)
 	f.FrameHead = head
-	rd := newReader(data)
+	rd := encodedbytes.NewReader(data)
 
-	if f.encoding, err = rd.readByte(); err != nil {
+	if f.encoding, err = rd.ReadByte(); err != nil {
 		return nil
 	}
 
-	if f.language, err = rd.readNumBytesString(3); err != nil {
+	if f.language, err = rd.ReadNumBytesString(3); err != nil {
 		return nil
 	}
 
-	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+	if f.description, err = rd.ReadNullTermString(f.encoding); err != nil {
 		return nil
 	}
 
-	if f.text, err = rd.readRestString(f.encoding); err != nil {
+	if f.text, err = rd.ReadRestString(f.encoding); err != nil {
 		return nil
 	}
 
@@ -369,21 +370,21 @@ func (f UnsynchTextFrame) String() string {
 func (f UnsynchTextFrame) Bytes() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
-	wr := newWriter(bytes)
+	wr := encodedbytes.NewWriter(bytes)
 
-	if err = wr.writeByte(f.encoding); err != nil {
+	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.language, NativeEncoding); err != nil {
+	if err = wr.WriteString(f.language, encodedbytes.NativeEncoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.description, f.encoding); err != nil {
+	if err = wr.WriteString(f.description, f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.text, f.encoding); err != nil {
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
 	}
 
@@ -403,25 +404,25 @@ func ParseImageFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := new(ImageFrame)
 	f.FrameHead = head
-	rd := newReader(data)
+	rd := encodedbytes.NewReader(data)
 
-	if f.encoding, err = rd.readByte(); err != nil {
+	if f.encoding, err = rd.ReadByte(); err != nil {
 		return nil
 	}
 
-	if f.mimeType, err = rd.readNullTermString(NativeEncoding); err != nil {
+	if f.mimeType, err = rd.ReadNullTermString(encodedbytes.NativeEncoding); err != nil {
 		return nil
 	}
 
-	if f.pictureType, err = rd.readByte(); err != nil {
+	if f.pictureType, err = rd.ReadByte(); err != nil {
 		return nil
 	}
 
-	if f.description, err = rd.readNullTermString(f.encoding); err != nil {
+	if f.description, err = rd.ReadNullTermString(f.encoding); err != nil {
 		return nil
 	}
 
-	if f.data, err = rd.readRest(); err != nil {
+	if f.data, err = rd.ReadRest(); err != nil {
 		return nil
 	}
 
@@ -429,16 +430,16 @@ func ParseImageFrame(head FrameHead, data []byte) Framer {
 }
 
 func (f ImageFrame) Encoding() string {
-	return encodingForIndex(f.encoding)
+	return encodedbytes.EncodingForIndex(f.encoding)
 }
 
 func (f *ImageFrame) SetEncoding(encoding string) error {
-	i := byte(indexForEncoding(encoding))
+	i := byte(encodedbytes.IndexForEncoding(encoding))
 	if i < 0 {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedDiff(f.encoding, f.description, i, f.description)
+	diff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
 	if err != nil {
 		return err
 	}
@@ -472,25 +473,25 @@ func (f ImageFrame) String() string {
 func (f ImageFrame) Bytes() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
-	wr := newWriter(bytes)
+	wr := encodedbytes.NewWriter(bytes)
 
-	if err = wr.writeByte(f.encoding); err != nil {
+	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.mimeType, NativeEncoding); err != nil {
+	if err = wr.WriteString(f.mimeType, encodedbytes.NativeEncoding); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeByte(f.pictureType); err != nil {
+	if err = wr.WriteByte(f.pictureType); err != nil {
 		return bytes
 	}
 
-	if err = wr.writeString(f.description, f.encoding); err != nil {
+	if err = wr.WriteString(f.description, f.encoding); err != nil {
 		return bytes
 	}
 
-	if n, err := wr.write(f.data); n < len(f.data) || err != nil {
+	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
 		return bytes
 	}
 

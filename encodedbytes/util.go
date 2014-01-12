@@ -1,7 +1,7 @@
 // Copyright 2013 Michael Yang. All rights reserved.
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
-package v2
+package encodedbytes
 
 import (
 	"bytes"
@@ -29,14 +29,14 @@ var (
 )
 
 func init() {
-	n := encodingForIndex(NativeEncoding)
+	n := EncodingForIndex(NativeEncoding)
 	for i, e := range EncodingMap {
 		Decoders[i], _ = iconv.NewConverter(e, n)
 		Encoders[i], _ = iconv.NewConverter(n, e)
 	}
 }
 
-func byteint(buf []byte, base uint) (i int32, err error) {
+func ByteInt(buf []byte, base uint) (i int32, err error) {
 	if len(buf) > BytesPerInt {
 		err = errors.New("byte integer: invalid []byte length")
 		return
@@ -54,17 +54,17 @@ func byteint(buf []byte, base uint) (i int32, err error) {
 	return
 }
 
-func synchint(buf []byte) (i int32, err error) {
-	i, err = byteint(buf, SynchByteLength)
+func SynchInt(buf []byte) (i int32, err error) {
+	i, err = ByteInt(buf, SynchByteLength)
 	return
 }
 
-func normint(buf []byte) (i int32, err error) {
-	i, err = byteint(buf, NormByteLength)
+func NormInt(buf []byte) (i int32, err error) {
+	i, err = ByteInt(buf, NormByteLength)
 	return
 }
 
-func intbytes(n int32, base uint) []byte {
+func IntBytes(n int32, base uint) []byte {
 	mask := int32(1<<base - 1)
 	bytes := make([]byte, BytesPerInt)
 
@@ -76,15 +76,15 @@ func intbytes(n int32, base uint) []byte {
 	return bytes
 }
 
-func synchbytes(n int32) []byte {
-	return intbytes(n, SynchByteLength)
+func SynchBytes(n int32) []byte {
+	return IntBytes(n, SynchByteLength)
 }
 
-func normbytes(n int32) []byte {
-	return intbytes(n, NormByteLength)
+func NormBytes(n int32) []byte {
+	return IntBytes(n, NormByteLength)
 }
 
-func encodingForIndex(b byte) string {
+func EncodingForIndex(b byte) string {
 	encodingIndex := int(b)
 	if encodingIndex < 0 || encodingIndex > len(EncodingMap) {
 		encodingIndex = 0
@@ -93,7 +93,7 @@ func encodingForIndex(b byte) string {
 	return EncodingMap[encodingIndex]
 }
 
-func indexForEncoding(e string) byte {
+func IndexForEncoding(e string) byte {
 	for i, v := range EncodingMap {
 		if v == e {
 			return byte(i)
@@ -104,7 +104,7 @@ func indexForEncoding(e string) byte {
 }
 
 func afterNullIndex(data []byte, encoding byte) int {
-	encodingString := encodingForIndex(encoding)
+	encodingString := EncodingForIndex(encoding)
 
 	if encodingString == "UTF-16" || encodingString == "UTF-16BE" {
 		limit, byteCount := len(data), UTF16NullLength
@@ -127,7 +127,7 @@ func afterNullIndex(data []byte, encoding byte) int {
 	return -1
 }
 
-func encodedDiff(ea byte, a string, eb byte, b string) (int, error) {
+func EncodedDiff(ea byte, a string, eb byte, b string) (int, error) {
 	encodedStringA, err := Encoders[ea].ConvertString(a)
 	if err != nil {
 		return 0, err
