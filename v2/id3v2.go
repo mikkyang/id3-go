@@ -24,14 +24,12 @@ type Tag struct {
 }
 
 // Creates a new tag
-func ParseTag(reader io.Reader) *Tag {
-	t := &Tag{
-		Header: ParseHeader(reader),
-		frames: make(map[string][]Framer),
-	}
+func NewTag(version byte) *Tag {
+	header := &Header{version: version}
 
-	if t.Header == nil {
-		return nil
+	t := &Tag{
+		Header: header,
+		frames: make(map[string][]Framer),
 	}
 
 	switch t.version {
@@ -51,6 +49,20 @@ func ParseTag(reader io.Reader) *Tag {
 		t.frameHeaderSize = FrameHeaderSize
 		t.frameBytesConstructor = V23Bytes
 	}
+
+	return t
+}
+
+// Parses a new tag
+func ParseTag(reader io.Reader) *Tag {
+	header := ParseHeader(reader)
+
+	if header == nil {
+		return nil
+	}
+
+	t := NewTag(header.version)
+	t.Header = header
 
 	var frame Framer
 	size := int(t.size)
