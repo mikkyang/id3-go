@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
+	"os"
 )
 
 const (
@@ -55,8 +56,8 @@ func NewTag(version byte) *Tag {
 }
 
 // Parses a new tag
-func ParseTag(reader io.Reader) *Tag {
-	header := ParseHeader(reader)
+func ParseTag(readSeeker io.ReadSeeker) *Tag {
+	header := ParseHeader(readSeeker)
 
 	if header == nil {
 		return nil
@@ -68,7 +69,7 @@ func ParseTag(reader io.Reader) *Tag {
 	var frame Framer
 	size := int(t.size)
 	for size > 0 {
-		frame = t.frameConstructor(reader)
+		frame = t.frameConstructor(readSeeker)
 
 		if frame == nil {
 			break
@@ -82,13 +83,8 @@ func ParseTag(reader io.Reader) *Tag {
 	}
 
 	t.padding = uint(size)
-
-	if int(t.padding) > t.frameHeaderSize {
-		// Psuedo-unread bytes for last attempted frame
-		nAdvance := int(t.padding) - t.frameHeaderSize
-		if n, err := io.ReadFull(reader, make([]byte, nAdvance)); n != nAdvance || err != nil {
-			return nil
-		}
+	if _, err := readSeeker.Seek(int64(t.padding), os.SEEK_CUR); err != nil {
+		return nil
 	}
 
 	return t
