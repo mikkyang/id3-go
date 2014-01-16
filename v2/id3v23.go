@@ -138,7 +138,7 @@ func ParseV23Frame(reader io.Reader) Framer {
 		FrameType:   t,
 		statusFlags: data[8],
 		formatFlags: data[9],
-		size:        uint32(size),
+		size:        size,
 	}
 
 	frameData := make([]byte, size)

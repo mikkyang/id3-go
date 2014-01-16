@@ -110,7 +110,7 @@ func ParseV22Frame(reader io.Reader) Framer {
 
 	h := FrameHead{
 		FrameType: t,
-		size:      uint32(size),
+		size:      size,
 	}
 
 	frameData := make([]byte, size)
