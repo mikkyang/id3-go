@@ -36,7 +36,7 @@ func init() {
 	}
 }
 
-func ByteInt(buf []byte, base uint) (i int32, err error) {
+func ByteInt(buf []byte, base uint) (i uint32, err error) {
 	if len(buf) > BytesPerInt {
 		err = errors.New("byte integer: invalid []byte length")
 		return
@@ -48,24 +48,24 @@ func ByteInt(buf []byte, base uint) (i int32, err error) {
 			return
 		}
 
-		i = (i << base) | int32(b)
+		i = (i << base) | uint32(b)
 	}
 
 	return
 }
 
-func SynchInt(buf []byte) (i int32, err error) {
+func SynchInt(buf []byte) (i uint32, err error) {
 	i, err = ByteInt(buf, SynchByteLength)
 	return
 }
 
-func NormInt(buf []byte) (i int32, err error) {
+func NormInt(buf []byte) (i uint32, err error) {
 	i, err = ByteInt(buf, NormByteLength)
 	return
 }
 
-func IntBytes(n int32, base uint) []byte {
-	mask := int32(1<<base - 1)
+func IntBytes(n uint32, base uint) []byte {
+	mask := uint32(1<<base - 1)
 	bytes := make([]byte, BytesPerInt)
 
 	for i, _ := range bytes {
@@ -76,11 +76,11 @@ func IntBytes(n int32, base uint) []byte {
 	return bytes
 }
 
-func SynchBytes(n int32) []byte {
+func SynchBytes(n uint32) []byte {
 	return IntBytes(n, SynchByteLength)
 }
 
-func NormBytes(n int32) []byte {
+func NormBytes(n uint32) []byte {
 	return IntBytes(n, NormByteLength)
 }
 

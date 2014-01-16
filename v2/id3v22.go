@@ -125,7 +125,7 @@ func V22Bytes(f Framer) []byte {
 	headBytes := make([]byte, V22FrameHeaderSize)
 
 	copy(headBytes[:3], []byte(f.Id()))
-	copy(headBytes[3:6], encodedbytes.NormBytes(int32(f.Size()))[1:])
+	copy(headBytes[3:6], encodedbytes.NormBytes(uint32(f.Size()))[1:])
 
 	return append(headBytes, f.Bytes()...)
 }

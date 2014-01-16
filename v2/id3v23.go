@@ -153,7 +153,7 @@ func V23Bytes(f Framer) []byte {
 	headBytes := make([]byte, FrameHeaderSize)
 
 	copy(headBytes[:4], []byte(f.Id()))
-	copy(headBytes[4:8], encodedbytes.NormBytes(int32(f.Size())))
+	copy(headBytes[4:8], encodedbytes.NormBytes(uint32(f.Size())))
 	headBytes[8] = f.StatusFlags()
 	headBytes[9] = f.FormatFlags()
 

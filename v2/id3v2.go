@@ -99,7 +99,7 @@ func (t Tag) RealSize() int {
 func (t *Tag) changeSize(diff int) {
 	if d := int(t.padding) - diff; d < 0 {
 		t.padding = 0
-		t.size += int32(-d)
+		t.size += uint32(-d)
 	} else {
 		t.padding = uint(d)
 	}
@@ -312,7 +312,7 @@ type Header struct {
 	compression       bool
 	experimental      bool
 	extendedHeader    bool
-	size              int32
+	size              uint32
 }
 
 func (h Header) Version() string {
