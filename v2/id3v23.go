@@ -102,7 +102,7 @@ var (
 		"TSSE": FrameType{id: "TSSE", description: "Software/Hardware and settings used for encoding", constructor: ParseTextFrame},
 		"TYER": FrameType{id: "TYER", description: "Year", constructor: ParseTextFrame},
 		"TXXX": FrameType{id: "TXXX", description: "User defined text information frame", constructor: ParseDescTextFrame},
-		"UFID": FrameType{id: "UFID", description: "Unique file identifier", constructor: ParseDataFrame},
+		"UFID": FrameType{id: "UFID", description: "Unique file identifier", constructor: ParseIdFrame},
 		"USER": FrameType{id: "USER", description: "Terms of use", constructor: ParseDataFrame},
 		"USLT": FrameType{id: "USLT", description: "Unsychronized lyric/text transcription", constructor: ParseUnsynchTextFrame},
 		"WCOM": FrameType{id: "WCOM", description: "Commercial information", constructor: ParseDataFrame},

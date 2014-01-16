@@ -113,6 +113,86 @@ func (f DataFrame) Bytes() []byte {
 	return f.data
 }
 
+// IdFrame represents identification tags
+type IdFrame struct {
+	FrameHead
+	ownerIdentifier string
+	identifier      []byte
+}
+
+func NewIdFrame(ft FrameType, ownerId string, id []byte) *IdFrame {
+	head := FrameHead{
+		FrameType: ft,
+		size:      uint32(1 + len(ownerId) + len(id)),
+	}
+
+	return &IdFrame{
+		FrameHead:       head,
+		ownerIdentifier: ownerId,
+		identifier:      id,
+	}
+}
+
+func ParseIdFrame(head FrameHead, data []byte) Framer {
+	var err error
+	f := &IdFrame{FrameHead: head}
+	rd := encodedbytes.NewReader(data)
+
+	if f.ownerIdentifier, err = rd.ReadNullTermString(encodedbytes.NativeEncoding); err != nil {
+		return nil
+	}
+
+	if f.identifier, err = rd.ReadRest(); len(f.identifier) > 64 || err != nil {
+		return nil
+	}
+
+	return f
+}
+
+func (f IdFrame) OwnerIdentifier() string {
+	return f.ownerIdentifier
+}
+
+func (f *IdFrame) SetOwnerIdentifier(ownerId string) {
+	f.changeSize(len(ownerId) - len(f.ownerIdentifier))
+	f.ownerIdentifier = ownerId
+}
+
+func (f IdFrame) Identifier() []byte {
+	return f.identifier
+}
+
+func (f *IdFrame) SetIdentifier(id []byte) error {
+	if len(id) > 64 {
+		return errors.New("identifier: identifier too long")
+	}
+
+	f.changeSize(len(id) - len(f.identifier))
+	f.identifier = id
+
+	return nil
+}
+
+func (f IdFrame) String() string {
+	return fmt.Sprintf("%s: %v", f.ownerIdentifier, f.identifier)
+}
+
+func (f IdFrame) Bytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
+
+	if err = wr.WriteString(f.ownerIdentifier, encodedbytes.NativeEncoding); err != nil {
+		return bytes
+	}
+
+	if _, err = wr.Write(f.identifier); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
 // TextFramer represents frames that contain encoded text
 type TextFramer interface {
 	Framer
