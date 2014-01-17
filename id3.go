@@ -27,7 +27,7 @@ type Tagger interface {
 	Frames(string) []v2.Framer
 	Frame(string) v2.Framer
 	DeleteFrames(string) []v2.Framer
-	AddFrame(v2.Framer)
+	AddFrames(...v2.Framer)
 	Bytes() []byte
 	Padding() uint
 	Size() int

@@ -185,13 +185,15 @@ func (t *Tag) DeleteFrames(id string) []Framer {
 	return frames
 }
 
-// Add frame
-func (t *Tag) AddFrame(frame Framer) {
-	t.changeSize(t.frameHeaderSize + int(frame.Size()))
+// Add frames
+func (t *Tag) AddFrames(frames ...Framer) {
+	for _, frame := range frames {
+		t.changeSize(t.frameHeaderSize + int(frame.Size()))
 
-	id := frame.Id()
-	t.frames[id] = append(t.frames[id], frame)
-	frame.setOwner(t)
+		id := frame.Id()
+		t.frames[id] = append(t.frames[id], frame)
+		frame.setOwner(t)
+	}
 }
 
 func (t Tag) Title() string {

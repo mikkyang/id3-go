@@ -134,4 +134,4 @@ func (t Tag) AllFrames() []v2.Framer             { return []v2.Framer{} }
 func (t Tag) Frame(id string) v2.Framer          { return nil }
 func (t Tag) Frames(id string) []v2.Framer       { return []v2.Framer{} }
 func (t Tag) DeleteFrames(id string) []v2.Framer { return []v2.Framer{} }
-func (t Tag) AddFrame(f v2.Framer)               {}
+func (t Tag) AddFrames(f ...v2.Framer)           {}
