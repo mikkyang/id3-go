@@ -271,6 +271,8 @@ func (t Tag) textFrameText(ft FrameType) string {
 func (t *Tag) setTextFrameText(ft FrameType, text string) {
 	if frame := t.textFrame(ft); frame != nil {
 		frame.SetText(text)
+	} else {
+		t.AddFrames(NewTextFrame(ft, text))
 	}
 }
 
