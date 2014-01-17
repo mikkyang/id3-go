@@ -14,13 +14,13 @@ const (
 
 var (
 	// Common frame IDs
-	V22CommonFrame = map[string]string{
-		"Title":    "TT2",
-		"Artist":   "TP1",
-		"Album":    "TAL",
-		"Year":     "TYE",
-		"Genre":    "TCO",
-		"Comments": "COM",
+	V22CommonFrame = map[string]FrameType{
+		"Title":    V22FrameTypeMap["TT2"],
+		"Artist":   V22FrameTypeMap["TP1"],
+		"Album":    V22FrameTypeMap["TAL"],
+		"Year":     V22FrameTypeMap["TYE"],
+		"Genre":    V22FrameTypeMap["TCO"],
+		"Comments": V22FrameTypeMap["COM"],
 	}
 
 	// V22FrameTypeMap specifies the frame IDs and constructors allowed in ID3v2.2

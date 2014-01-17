@@ -19,7 +19,7 @@ type Tag struct {
 	*Header
 	frames                map[string][]Framer
 	padding               uint
-	commonMap             map[string]string
+	commonMap             map[string]FrameType
 	frameHeaderSize       int
 	frameConstructor      func(io.Reader) Framer
 	frameBytesConstructor func(Framer) []byte
@@ -217,7 +217,7 @@ func (t Tag) Genre() string {
 }
 
 func (t Tag) Comments() []string {
-	frames := t.Frames(t.commonMap["Comments"])
+	frames := t.Frames(t.commonMap["Comments"].Id())
 	if frames == nil {
 		return nil
 	}
@@ -250,8 +250,8 @@ func (t *Tag) SetGenre(text string) {
 	t.setTextFrameText(t.commonMap["Genre"], text)
 }
 
-func (t *Tag) textFrame(id string) TextFramer {
-	if frame := t.Frame(id); frame != nil {
+func (t *Tag) textFrame(ft FrameType) TextFramer {
+	if frame := t.Frame(ft.Id()); frame != nil {
 		if textFramer, ok := frame.(TextFramer); ok {
 			return textFramer
 		}
@@ -260,16 +260,16 @@ func (t *Tag) textFrame(id string) TextFramer {
 	return nil
 }
 
-func (t Tag) textFrameText(id string) string {
-	if frame := t.textFrame(id); frame != nil {
+func (t Tag) textFrameText(ft FrameType) string {
+	if frame := t.textFrame(ft); frame != nil {
 		return frame.Text()
 	}
 
 	return ""
 }
 
-func (t *Tag) setTextFrameText(id, text string) {
-	if frame := t.textFrame(id); frame != nil {
+func (t *Tag) setTextFrameText(ft FrameType, text string) {
+	if frame := t.textFrame(ft); frame != nil {
 		frame.SetText(text)
 	}
 }

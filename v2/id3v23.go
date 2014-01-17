@@ -10,13 +10,13 @@ import (
 
 var (
 	// Common frame IDs
-	V23CommonFrame = map[string]string{
-		"Title":    "TIT2",
-		"Artist":   "TPE1",
-		"Album":    "TALB",
-		"Year":     "TYER",
-		"Genre":    "TCON",
-		"Comments": "COMM",
+	V23CommonFrame = map[string]FrameType{
+		"Title":    V23FrameTypeMap["TIT2"],
+		"Artist":   V23FrameTypeMap["TPE1"],
+		"Album":    V23FrameTypeMap["TALB"],
+		"Year":     V23FrameTypeMap["TYER"],
+		"Genre":    V23FrameTypeMap["TCON"],
+		"Comments": V23FrameTypeMap["COMM"],
 	}
 
 	// V23DeprecatedTypeMap contains deprecated frame IDs from ID3v2.2

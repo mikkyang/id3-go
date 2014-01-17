@@ -44,8 +44,8 @@ type FrameHead struct {
 	owner       *Tag
 }
 
-func (h FrameHead) Id() string {
-	return h.id
+func (ft FrameType) Id() string {
+	return ft.id
 }
 
 func (h FrameHead) Size() uint {
