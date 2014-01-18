@@ -83,7 +83,7 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 	}
 
 	t.padding = uint(size)
-	if _, err := readSeeker.Seek(int64(t.padding), os.SEEK_CUR); err != nil {
+	if _, err := readSeeker.Seek(int64(HeaderSize+t.Size()), os.SEEK_SET); err != nil {
 		return nil
 	}
 
