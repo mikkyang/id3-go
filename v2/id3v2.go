@@ -328,13 +328,11 @@ func (h Header) Size() int {
 }
 
 func (h Header) Bytes() []byte {
-	data := make([]byte, HeaderSize)
+	data := make([]byte, 0, HeaderSize)
 
-	copy(data[:3], []byte("ID3"))
-	copy(data[6:], encodedbytes.SynchBytes(h.size))
-	data[3] = h.version
-	data[4] = h.revision
-	data[5] = h.flags
+	data = append(data, "ID3"...)
+	data = append(data, h.version, h.revision, h.flags)
+	data = append(data, encodedbytes.SynchBytes(h.size)...)
 
 	return data
 }

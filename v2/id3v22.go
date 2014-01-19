@@ -122,10 +122,10 @@ func ParseV22Frame(reader io.Reader) Framer {
 }
 
 func V22Bytes(f Framer) []byte {
-	headBytes := make([]byte, V22FrameHeaderSize)
+	headBytes := make([]byte, 0, V22FrameHeaderSize)
 
-	copy(headBytes[:3], []byte(f.Id()))
-	copy(headBytes[3:6], encodedbytes.NormBytes(uint32(f.Size()))[1:])
+	headBytes = append(headBytes, f.Id()...)
+	headBytes = append(headBytes, encodedbytes.NormBytes(uint32(f.Size()))[1:]...)
 
 	return append(headBytes, f.Bytes()...)
 }

@@ -150,12 +150,11 @@ func ParseV23Frame(reader io.Reader) Framer {
 }
 
 func V23Bytes(f Framer) []byte {
-	headBytes := make([]byte, FrameHeaderSize)
+	headBytes := make([]byte, 0, FrameHeaderSize)
 
-	copy(headBytes[:4], []byte(f.Id()))
-	copy(headBytes[4:8], encodedbytes.NormBytes(uint32(f.Size())))
-	headBytes[8] = f.StatusFlags()
-	headBytes[9] = f.FormatFlags()
+	headBytes = append(headBytes, f.Id()...)
+	headBytes = append(headBytes, encodedbytes.NormBytes(uint32(f.Size()))...)
+	headBytes = append(headBytes, f.StatusFlags(), f.FormatFlags())
 
 	return append(headBytes, f.Bytes()...)
 }
