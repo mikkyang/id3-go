@@ -48,15 +48,18 @@ func (r *Reader) ReadNumBytes(n int) ([]byte, error) {
 	return b, err
 }
 
+// Read a number of bytes and cast to a string
 func (r *Reader) ReadNumBytesString(n int) (string, error) {
 	b, err := r.ReadNumBytes(n)
 	return string(b), err
 }
 
+// Read until the end of the data
 func (r *Reader) ReadRest() ([]byte, error) {
 	return r.ReadNumBytes(len(r.data) - r.index)
 }
 
+// Read until the end of the data and cast to a string
 func (r *Reader) ReadRestString(encoding byte) (string, error) {
 	b, err := r.ReadRest()
 	if err != nil {
@@ -66,6 +69,7 @@ func (r *Reader) ReadRestString(encoding byte) (string, error) {
 	return Decoders[encoding].ConvertString(string(b))
 }
 
+// Read a null terminated string of specified encoding
 func (r *Reader) ReadNullTermString(encoding byte) (string, error) {
 	b, err := r.ReadNumBytes(afterNullIndex(r.data[r.index:], encoding))
 	if err != nil {

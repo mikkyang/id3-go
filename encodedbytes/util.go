@@ -36,6 +36,7 @@ func init() {
 	}
 }
 
+// Form an integer from concatenated bits
 func ByteInt(buf []byte, base uint) (i uint32, err error) {
 	if len(buf) > BytesPerInt {
 		err = errors.New("byte integer: invalid []byte length")
@@ -64,6 +65,7 @@ func NormInt(buf []byte) (i uint32, err error) {
 	return
 }
 
+// Form a byte slice from an integer
 func IntBytes(n uint32, base uint) []byte {
 	mask := uint32(1<<base - 1)
 	bytes := make([]byte, BytesPerInt)
