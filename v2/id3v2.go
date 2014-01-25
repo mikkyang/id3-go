@@ -297,12 +297,12 @@ func ParseHeader(reader io.Reader) *Header {
 
 	switch header.version {
 	case 2:
-		header.unsynchronization = (header.flags & 1 << 7) == 1
-		header.compression = (header.flags & 1 << 6) == 1
+		header.unsynchronization = isBitSet(header.flags, 7)
+		header.compression = isBitSet(header.flags, 6)
 	case 3:
-		header.unsynchronization = (header.flags & 1 << 7) == 1
-		header.extendedHeader = (header.flags & 1 << 6) == 1
-		header.experimental = (header.flags & 1 << 5) == 1
+		header.unsynchronization = isBitSet(header.flags, 7)
+		header.extendedHeader = isBitSet(header.flags, 6)
+		header.experimental = isBitSet(header.flags, 5)
 	}
 
 	return header
