@@ -4,5 +4,5 @@
 package v2
 
 func isBitSet(flag, index byte) bool {
-	return flag&(1<<index) == 1
+	return flag&(1<<index) != 0
 }
