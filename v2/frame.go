@@ -399,6 +399,9 @@ func NewUnsynchTextFrame(ft FrameType, desc, text string) *UnsynchTextFrame {
 	f := NewDescTextFrame(ft, desc, text)
 	f.size += uint32(3)
 
+	// add null length for this encoding
+	f.size += uint32(encodedbytes.EncodingNullLengthForIndex(f.encoding))
+
 	return &UnsynchTextFrame{
 		DescTextFrame: *f,
 		language:      "eng",
@@ -443,6 +446,19 @@ func (f *UnsynchTextFrame) SetLanguage(language string) error {
 	return nil
 }
 
+func (f *UnsynchTextFrame) SetEncoding(encoding string) error {
+	prevIndex := f.encoding
+	err := f.DescTextFrame.SetEncoding(encoding)
+	if err != nil {
+		return err
+	}
+
+	n1 := encodedbytes.EncodingNullLengthForIndex(prevIndex)
+	n2 := encodedbytes.EncodingNullLengthForIndex(f.encoding)
+	f.changeSize(n2 - n1)
+	return nil
+}
+
 func (f UnsynchTextFrame) String() string {
 	return fmt.Sprintf("%s\t%s:\n%s", f.language, f.description, f.text)
 }
@@ -460,7 +476,7 @@ func (f UnsynchTextFrame) Bytes() []byte {
 		return bytes
 	}
 
-	if err = wr.WriteString(f.description, f.encoding); err != nil {
+	if err = wr.WriteNullTermString(f.description, f.encoding); err != nil {
 		return bytes
 	}
 

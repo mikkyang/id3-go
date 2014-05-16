@@ -71,12 +71,13 @@ func (r *Reader) ReadRestString(encoding byte) (string, error) {
 
 // Read a null terminated string of specified encoding
 func (r *Reader) ReadNullTermString(encoding byte) (string, error) {
-	b, err := r.ReadNumBytes(afterNullIndex(r.data[r.index:], encoding))
+	atIndex, afterIndex := nullIndex(r.data[r.index:], encoding)
+	b, err := r.ReadNumBytes(afterIndex)
 	if err != nil {
 		return "", err
 	}
 
-	return Decoders[encoding].ConvertString(string(b))
+	return Decoders[encoding].ConvertString(string(b[:atIndex]))
 }
 
 func NewReader(b []byte) *Reader { return &Reader{b, 0} }
