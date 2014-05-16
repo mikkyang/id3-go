@@ -7,6 +7,7 @@ import (
 	"bytes"
 	v2 "github.com/mikkyang/id3-go/v2"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -70,5 +71,52 @@ func TestClose(t *testing.T) {
 
 	if err := ioutil.WriteFile(testFile, before, 0666); err != nil {
 		t.Errorf("Close: unable to write original contents to test file")
+	}
+}
+
+func TestUnsynchTextFrame_RoundTrip(t *testing.T) {
+	var (
+		err              error
+		tempfile         *os.File
+		f                *File
+		tagger           *v2.Tag
+		ft               v2.FrameType
+		utextFrame       *v2.UnsynchTextFrame
+		parsedFrame      v2.Framer
+		resultFrame      *v2.UnsynchTextFrame
+		ok               bool
+		expected, actual string
+	)
+
+	tempfile, err = ioutil.TempFile("", "id3v2")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tagger = v2.NewTag(3)
+	ft = v2.V23FrameTypeMap["COMM"]
+	utextFrame = v2.NewUnsynchTextFrame(ft, "Comment", "Foo")
+	tagger.AddFrames(utextFrame)
+
+	_, err = tempfile.Write(tagger.Bytes())
+	tempfile.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err = Open(tempfile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	parsedFrame = f.Frame("COMM")
+	if resultFrame, ok = parsedFrame.(*v2.UnsynchTextFrame); !ok {
+		t.Error("Couldn't cast frame")
+	} else {
+		expected = utextFrame.Description()
+		actual = resultFrame.Description()
+		if expected != actual {
+			t.Errorf("Expected %q, got %q", expected, actual)
+		}
 	}
 }

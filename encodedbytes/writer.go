@@ -48,4 +48,12 @@ func (w *Writer) WriteString(s string, encoding byte) (err error) {
 	return
 }
 
+func (w *Writer) WriteNullTermString(s string, encoding byte) (err error) {
+	err = w.WriteString(s, encoding)
+	if err == nil {
+		err = w.WriteByte(0)
+	}
+	return
+}
+
 func NewWriter(b []byte) *Writer { return &Writer{b, 0} }

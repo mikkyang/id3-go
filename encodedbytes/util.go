@@ -14,15 +14,19 @@ const (
 	SynchByteLength = 7
 	NormByteLength  = 8
 	NativeEncoding  = 3
-	UTF16NullLength = 2
 )
 
+type Encoding struct {
+	Name       string
+	NullLength int
+}
+
 var (
-	EncodingMap = [...]string{
-		"ISO-8859-1",
-		"UTF-16",
-		"UTF-16BE",
-		"UTF-8",
+	EncodingMap = [...]Encoding{
+		{Name: "ISO-8859-1", NullLength: 1},
+		{Name: "UTF-16", NullLength: 2},
+		{Name: "UTF-16BE", NullLength: 2},
+		{Name: "UTF-8", NullLength: 1},
 	}
 	Decoders = make([]*iconv.Converter, len(EncodingMap))
 	Encoders = make([]*iconv.Converter, len(EncodingMap))
@@ -31,8 +35,8 @@ var (
 func init() {
 	n := EncodingForIndex(NativeEncoding)
 	for i, e := range EncodingMap {
-		Decoders[i], _ = iconv.NewConverter(e, n)
-		Encoders[i], _ = iconv.NewConverter(n, e)
+		Decoders[i], _ = iconv.NewConverter(e.Name, n)
+		Encoders[i], _ = iconv.NewConverter(n, e.Name)
 	}
 }
 
@@ -92,12 +96,21 @@ func EncodingForIndex(b byte) string {
 		encodingIndex = 0
 	}
 
-	return EncodingMap[encodingIndex]
+	return EncodingMap[encodingIndex].Name
+}
+
+func EncodingNullLengthForIndex(b byte) int {
+	encodingIndex := int(b)
+	if encodingIndex < 0 || encodingIndex > len(EncodingMap) {
+		encodingIndex = 0
+	}
+
+	return EncodingMap[encodingIndex].NullLength
 }
 
 func IndexForEncoding(e string) byte {
 	for i, v := range EncodingMap {
-		if v == e {
+		if v.Name == e {
 			return byte(i)
 		}
 	}
@@ -105,28 +118,23 @@ func IndexForEncoding(e string) byte {
 	return 0
 }
 
-func afterNullIndex(data []byte, encoding byte) int {
-	encodingString := EncodingForIndex(encoding)
+func nullIndex(data []byte, encoding byte) (atIndex, afterIndex int) {
+	byteCount := EncodingNullLengthForIndex(encoding)
+	limit := len(data)
+	null := bytes.Repeat([]byte{0x0}, byteCount)
 
-	if encodingString == "UTF-16" || encodingString == "UTF-16BE" {
-		limit, byteCount := len(data), UTF16NullLength
-		null := bytes.Repeat([]byte{0x0}, byteCount)
+	for i, _ := range data[:limit/byteCount] {
+		atIndex = byteCount * i
+		afterIndex = atIndex + byteCount
 
-		for i, _ := range data[:limit/byteCount] {
-			atIndex := byteCount * i
-			afterIndex := atIndex + byteCount
-
-			if bytes.Equal(data[atIndex:afterIndex], null) {
-				return afterIndex
-			}
-		}
-	} else {
-		if index := bytes.IndexByte(data, 0x00); index >= 0 {
-			return index + 1
+		if bytes.Equal(data[atIndex:afterIndex], null) {
+			return
 		}
 	}
 
-	return -1
+	atIndex = -1
+	afterIndex = -1
+	return
 }
 
 func EncodedDiff(ea byte, a string, eb byte, b string) (int, error) {
