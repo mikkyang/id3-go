@@ -5,8 +5,8 @@ package id3
 
 import (
 	"errors"
-	"github.com/mikkyang/id3-go/v1"
-	"github.com/mikkyang/id3-go/v2"
+	"github.com/gerow/id3-go/v1"
+	"github.com/gerow/id3-go/v2"
 	"os"
 )
 
