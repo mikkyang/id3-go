@@ -4,7 +4,7 @@
 package v1
 
 import (
-	v2 "github.com/mikkyang/id3-go/v2"
+	v2 "github.com/gerow/id3-go/v2"
 	"io"
 	"os"
 )
