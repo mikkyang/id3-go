@@ -443,6 +443,7 @@ func (f *UnsynchTextFrame) SetLanguage(language string) error {
 	}
 
 	f.language = language
+	f.changeSize(0)
 	return nil
 }
 

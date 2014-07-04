@@ -29,6 +29,7 @@ type Tagger interface {
 	DeleteFrames(string) []v2.Framer
 	AddFrames(...v2.Framer)
 	Bytes() []byte
+	Dirty() bool
 	Padding() uint
 	Size() int
 	Version() string
@@ -65,6 +66,10 @@ func Open(name string) (*File, error) {
 // Saves any edits to the tagged file
 func (f *File) Close() error {
 	defer f.file.Close()
+
+	if !f.Dirty() {
+		return nil
+	}
 
 	switch f.Tagger.(type) {
 	case (*v1.Tag):
