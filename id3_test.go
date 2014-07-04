@@ -74,6 +74,38 @@ func TestClose(t *testing.T) {
 	}
 }
 
+func TestReadonly(t *testing.T) {
+	before, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Errorf("test file error")
+	}
+
+	file, err := Open(testFile)
+	if err != nil {
+		t.Errorf("Readonly: unable to open file")
+	}
+
+	file.Title()
+	file.Artist()
+	file.Album()
+	file.Year()
+	file.Genre()
+	file.Comments()
+
+	if err := file.Close(); err != nil {
+		t.Errorf("Readonly: unable to close file")
+	}
+
+	after, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Errorf("Readonly: unable to reopen file")
+	}
+
+	if !bytes.Equal(before, after) {
+		t.Errorf("Readonly: tag data modified without set")
+	}
+}
+
 func TestUnsynchTextFrame_RoundTrip(t *testing.T) {
 	var (
 		err              error

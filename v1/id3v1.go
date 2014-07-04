@@ -42,6 +42,7 @@ var (
 type Tag struct {
 	title, artist, album, year, comment string
 	genre                               byte
+	dirty                               bool
 }
 
 func ParseTag(readSeeker io.ReadSeeker) *Tag {
@@ -60,7 +61,12 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 		year:    string(data[93:97]),
 		comment: string(data[97:127]),
 		genre:   data[127],
+		dirty:   false,
 	}
+}
+
+func (t Tag) Dirty() bool {
+	return t.dirty
 }
 
 func (t Tag) Title() string  { return t.title }
@@ -82,18 +88,22 @@ func (t Tag) Comments() []string {
 
 func (t *Tag) SetTitle(text string) {
 	t.title = text
+	t.dirty = true
 }
 
 func (t *Tag) SetArtist(text string) {
 	t.artist = text
+	t.dirty = true
 }
 
 func (t *Tag) SetAlbum(text string) {
 	t.album = text
+	t.dirty = true
 }
 
 func (t *Tag) SetYear(text string) {
 	t.year = text
+	t.dirty = true
 }
 
 func (t *Tag) SetGenre(text string) {
@@ -104,6 +114,7 @@ func (t *Tag) SetGenre(text string) {
 			break
 		}
 	}
+	t.dirty = true
 }
 
 func (t Tag) Bytes() []byte {

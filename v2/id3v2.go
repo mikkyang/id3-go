@@ -23,6 +23,7 @@ type Tag struct {
 	frameHeaderSize       int
 	frameConstructor      func(io.Reader) Framer
 	frameBytesConstructor func(Framer) []byte
+	dirty                 bool
 }
 
 // Creates a new tag
@@ -32,6 +33,7 @@ func NewTag(version byte) *Tag {
 	t := &Tag{
 		Header: header,
 		frames: make(map[string][]Framer),
+		dirty:  false,
 	}
 
 	switch t.version {
@@ -103,6 +105,13 @@ func (t *Tag) changeSize(diff int) {
 	} else {
 		t.padding = uint(d)
 	}
+
+	t.dirty = true
+}
+
+// Modified status of the tag
+func (t Tag) Dirty() bool {
+	return t.dirty
 }
 
 func (t Tag) Bytes() []byte {
