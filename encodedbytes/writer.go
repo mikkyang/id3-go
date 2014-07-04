@@ -51,7 +51,14 @@ func (w *Writer) WriteString(s string, encoding byte) (err error) {
 func (w *Writer) WriteNullTermString(s string, encoding byte) (err error) {
 	err = w.WriteString(s, encoding)
 	if err == nil {
-		err = w.WriteByte(0)
+		nullLength := EncodingMap[encoding].NullLength
+
+		for i := 0; i < nullLength; i++ {
+			err = w.WriteByte(0)
+			if err != nil {
+				return
+			}
+		}
 	}
 	return
 }

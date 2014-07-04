@@ -6,13 +6,15 @@ package id3
 import (
 	"bytes"
 	v2 "github.com/mikkyang/id3-go/v2"
+	"io"
 	"io/ioutil"
 	"os"
 	"testing"
 )
 
 const (
-	testFile = "test.mp3"
+	testFile  = "test.mp3"
+	utf16File = "utf16_comm.mp3"
 )
 
 func TestOpen(t *testing.T) {
@@ -118,5 +120,26 @@ func TestUnsynchTextFrame_RoundTrip(t *testing.T) {
 		if expected != actual {
 			t.Errorf("Expected %q, got %q", expected, actual)
 		}
+	}
+}
+
+func TestUTF16CommPanic(t *testing.T) {
+	osFile, err := os.Open(utf16File)
+	if err != nil {
+		t.Error(err)
+	}
+	tempfile, err := ioutil.TempFile("", "utf16_comm")
+	if err != nil {
+		t.Error(err)
+	}
+	io.Copy(tempfile, osFile)
+	osFile.Close()
+	tempfile.Close()
+	for i := 0; i < 3; i++ {
+		file, err := Open(tempfile.Name())
+		if err != nil {
+			t.Error(err)
+		}
+		file.Close()
 	}
 }
