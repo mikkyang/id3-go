@@ -247,7 +247,7 @@ func (f *TextFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
+	diff, err := encodedbytes.EncodedDiff(i, f.text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
@@ -350,12 +350,12 @@ func (f *DescTextFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	descDiff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
+	descDiff, err := encodedbytes.EncodedDiff(i, f.text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
 
-	textDiff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
+	textDiff, err := encodedbytes.EncodedDiff(i, f.description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
@@ -536,7 +536,7 @@ func (f *ImageFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
+	diff, err := encodedbytes.EncodedDiff(i, f.description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
