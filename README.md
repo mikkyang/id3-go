@@ -1,5 +1,7 @@
 # id3
 
+[![build status](https://travis-ci.org/mikkyang/id3-go.svg)](https://travis-ci.org/mikkyang/id3-go)
+
 ID3 library for Go.
 
 Supported formats:
