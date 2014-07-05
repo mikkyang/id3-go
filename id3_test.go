@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	testFile  = "test.mp3"
-	utf16File = "utf16_comm.mp3"
+	testFile = "test.mp3"
 )
 
 func TestOpen(t *testing.T) {
@@ -38,6 +37,24 @@ func TestOpen(t *testing.T) {
 
 	if s := tag.Album(); s != "Chief Life" {
 		t.Errorf("Open: incorrect album, %v", s)
+	}
+
+	parsedFrame := file.Frame("COMM")
+	resultFrame, ok := parsedFrame.(*v2.UnsynchTextFrame)
+	if !ok {
+		t.Error("Couldn't cast frame")
+	}
+
+	expected := "✓"
+	actual := resultFrame.Description()
+
+	if expected != actual {
+		t.Errorf("Expected %q, got %q", expected, actual)
+	}
+
+	actual = resultFrame.Text()
+	if expected != actual {
+		t.Errorf("Expected %q, got %q", expected, actual)
 	}
 }
 
@@ -124,7 +141,7 @@ func TestUnsynchTextFrame_RoundTrip(t *testing.T) {
 }
 
 func TestUTF16CommPanic(t *testing.T) {
-	osFile, err := os.Open(utf16File)
+	osFile, err := os.Open(testFile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -135,7 +152,7 @@ func TestUTF16CommPanic(t *testing.T) {
 	io.Copy(tempfile, osFile)
 	osFile.Close()
 	tempfile.Close()
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		file, err := Open(tempfile.Name())
 		if err != nil {
 			t.Error(err)
