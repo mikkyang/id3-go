@@ -247,7 +247,7 @@ func (f *TextFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
+	diff, err := encodedbytes.EncodedDiff(i, f.text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,8 @@ type DescTextFrame struct {
 
 func NewDescTextFrame(ft FrameType, desc, text string) *DescTextFrame {
 	f := NewTextFrame(ft, text)
-	f.size += uint32(len(desc))
+	nullLength := encodedbytes.EncodingNullLengthForIndex(f.encoding)
+	f.size += uint32(len(desc) + nullLength)
 
 	return &DescTextFrame{
 		TextFrame:   *f,
@@ -350,17 +351,21 @@ func (f *DescTextFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	descDiff, err := encodedbytes.EncodedDiff(f.encoding, f.text, i, f.text)
+	descDiff, err := encodedbytes.EncodedDiff(i, f.text, f.encoding, f.text)
 	if err != nil {
 		return err
 	}
 
-	textDiff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
+	newNullLength := encodedbytes.EncodingNullLengthForIndex(i)
+	oldNullLength := encodedbytes.EncodingNullLengthForIndex(f.encoding)
+	nullDiff := newNullLength - oldNullLength
+
+	textDiff, err := encodedbytes.EncodedDiff(i, f.description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
 
-	f.changeSize(descDiff + textDiff)
+	f.changeSize(descDiff + nullDiff + textDiff)
 	f.encoding = i
 	return nil
 }
@@ -398,9 +403,6 @@ type UnsynchTextFrame struct {
 func NewUnsynchTextFrame(ft FrameType, desc, text string) *UnsynchTextFrame {
 	f := NewDescTextFrame(ft, desc, text)
 	f.size += uint32(3)
-
-	// add null length for this encoding
-	f.size += uint32(encodedbytes.EncodingNullLengthForIndex(f.encoding))
 
 	return &UnsynchTextFrame{
 		DescTextFrame: *f,
@@ -444,19 +446,6 @@ func (f *UnsynchTextFrame) SetLanguage(language string) error {
 
 	f.language = language
 	f.changeSize(0)
-	return nil
-}
-
-func (f *UnsynchTextFrame) SetEncoding(encoding string) error {
-	prevIndex := f.encoding
-	err := f.DescTextFrame.SetEncoding(encoding)
-	if err != nil {
-		return err
-	}
-
-	n1 := encodedbytes.EncodingNullLengthForIndex(prevIndex)
-	n2 := encodedbytes.EncodingNullLengthForIndex(f.encoding)
-	f.changeSize(n2 - n1)
 	return nil
 }
 
@@ -536,7 +525,7 @@ func (f *ImageFrame) SetEncoding(encoding string) error {
 		return errors.New("encoding: invalid encoding")
 	}
 
-	diff, err := encodedbytes.EncodedDiff(f.encoding, f.description, i, f.description)
+	diff, err := encodedbytes.EncodedDiff(i, f.description, f.encoding, f.description)
 	if err != nil {
 		return err
 	}
