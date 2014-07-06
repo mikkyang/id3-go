@@ -4,6 +4,7 @@
 package encodedbytes
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -49,17 +50,13 @@ func (w *Writer) WriteString(s string, encoding byte) (err error) {
 }
 
 func (w *Writer) WriteNullTermString(s string, encoding byte) (err error) {
-	err = w.WriteString(s, encoding)
-	if err == nil {
-		nullLength := EncodingMap[encoding].NullLength
-
-		for i := 0; i < nullLength; i++ {
-			err = w.WriteByte(0)
-			if err != nil {
-				return
-			}
-		}
+	if err = w.WriteString(s, encoding); err != nil {
+		return
 	}
+
+	nullLength := EncodingNullLengthForIndex(encoding)
+	_, err = w.Write(bytes.Repeat([]byte{0x0}, nullLength))
+
 	return
 }
 
