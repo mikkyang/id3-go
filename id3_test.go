@@ -125,6 +125,41 @@ func TestReadonly(t *testing.T) {
 	}
 }
 
+func TestAddTag(t *testing.T) {
+	tempFile, err := ioutil.TempFile("", "notag")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := Open(tempFile.Name())
+	if err != nil {
+		t.Errorf("AddTag: unable to open empty file")
+	}
+
+	tag := file.Tagger
+
+	if tag == nil {
+		t.Errorf("AddTag: no tag added to file")
+	}
+
+	file.SetArtist("Michael")
+
+	err = file.Close()
+	if err != nil {
+		t.Errorf("AddTag: error closing new file")
+	}
+
+	reopenBytes, err := ioutil.ReadFile(tempFile.Name())
+	if err != nil {
+		t.Errorf("AddTag: error reopening file")
+	}
+
+	expectedBytes := tag.Bytes()
+	if !bytes.Equal(expectedBytes, reopenBytes) {
+		t.Errorf("AddTag: tag not written correctly: %v", reopenBytes)
+	}
+}
+
 func TestUnsynchTextFrame_RoundTrip(t *testing.T) {
 	var (
 		err              error
