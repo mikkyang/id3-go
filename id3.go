@@ -10,6 +10,10 @@ import (
 	"os"
 )
 
+const (
+	LatestVersion = 3
+)
+
 // Tagger represents the metadata of a tag
 type Tagger interface {
 	Title() string
@@ -57,7 +61,8 @@ func Open(name string) (*File, error) {
 	} else if v1Tag := v1.ParseTag(fi); v1Tag != nil {
 		file.Tagger = v1Tag
 	} else {
-		return nil, errors.New("Open: unknown tag format")
+		// Add a new tag if none exists
+		file.Tagger = v2.NewTag(LatestVersion)
 	}
 
 	return file, nil
