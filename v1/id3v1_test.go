@@ -6,16 +6,13 @@ import (
 	"testing"
 )
 
-var tripTests = []struct {
-	title, artist, album, year, comment string
-	genre                               byte
-}{
+var tripTests = []Tag{
 	{"Foo", "Bar", "Baz", "2014", "Blah", 1},
 	{"Foo\x00Qux", "Bar", "Baz", "2014", "Blah", 1},
 }
 
 func TestParseTag_RoundTrip(t *testing.T) {
-	for testNum, tt := range tripTests {
+	for testNum, tag := range tripTests {
 		f, err := ioutil.TempFile("", "id3v1")
 		if err != nil {
 			t.Errorf("test %d: %s", testNum, err)
@@ -24,8 +21,6 @@ func TestParseTag_RoundTrip(t *testing.T) {
 		defer os.Remove(f.Name())
 		defer f.Close()
 
-		tag := &Tag{title: tt.title, artist: tt.artist, album: tt.album,
-			year: tt.year, comment: tt.comment, genre: tt.genre}
 		_, err = f.Write(tag.Bytes())
 		if err != nil {
 			t.Fatal(err)
@@ -37,8 +32,8 @@ func TestParseTag_RoundTrip(t *testing.T) {
 		}
 
 		resultTag := ParseTag(f)
-		if *tag != *resultTag {
-			t.Errorf("expected %q, got %q", *tag, *resultTag)
+		if tag != *resultTag {
+			t.Errorf("test %d: expected %q, got %q", testNum, tag, *resultTag)
 		}
 	}
 }
