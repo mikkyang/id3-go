@@ -7,6 +7,7 @@ import (
 	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"os"
+	"strings"
 )
 
 const (
@@ -45,24 +46,6 @@ type Tag struct {
 	dirty                               bool
 }
 
-// Remove nulls from end of string
-func removeNulls(s string) string {
-	index := -1
-	for i, r := range s {
-		if r == rune(0) {
-			if index == -1 {
-				index = i
-			}
-		} else {
-			index = -1
-		}
-	}
-	if index >= 0 {
-		return s[:index]
-	}
-	return s
-}
-
 func ParseTag(readSeeker io.ReadSeeker) *Tag {
 	readSeeker.Seek(-TagSize, os.SEEK_END)
 
@@ -72,12 +55,13 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 		return nil
 	}
 
+	cutset := string(rune(0))
 	return &Tag{
-		title:   removeNulls(string(data[3:33])),
-		artist:  removeNulls(string(data[33:63])),
-		album:   removeNulls(string(data[63:93])),
-		year:    removeNulls(string(data[93:97])),
-		comment: removeNulls(string(data[97:127])),
+		title:   strings.TrimRight(string(data[3:33]), cutset),
+		artist:  strings.TrimRight(string(data[33:63]), cutset),
+		album:   strings.TrimRight(string(data[63:93]), cutset),
+		year:    strings.TrimRight(string(data[93:97]), cutset),
+		comment: strings.TrimRight(string(data[97:127]), cutset),
 		genre:   data[127],
 		dirty:   false,
 	}
