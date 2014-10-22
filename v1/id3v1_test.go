@@ -7,8 +7,8 @@ import (
 )
 
 var tripTests = []Tag{
-	{"Foo", "Bar", "Baz", "2014", "Blah", 1},
-	{"Foo\x00Qux", "Bar", "Baz", "2014", "Blah", 1},
+	{title: "Foo", artist: "Bar", album: "Baz", year: "2014", comment: "Blah", genre: 1},
+	{title: "Foo\x00Qux", artist: "Bar", album: "Baz", year: "2014", comment: "Blah", genre: 1},
 }
 
 func TestParseTag_RoundTrip(t *testing.T) {
