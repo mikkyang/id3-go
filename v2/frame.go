@@ -557,25 +557,8 @@ func (f ImageFrame) String() string {
 }
 
 func (f ImageFrame) Bytes() []byte {
-	var err error
-	bytes := make([]byte, f.Size())
+	bytes := make([]byte,len(f.data) )
 	wr := encodedbytes.NewWriter(bytes)
-
-	if err = wr.WriteByte(f.encoding); err != nil {
-		return bytes
-	}
-
-	if err = wr.WriteString(f.mimeType, encodedbytes.NativeEncoding); err != nil {
-		return bytes
-	}
-
-	if err = wr.WriteByte(f.pictureType); err != nil {
-		return bytes
-	}
-
-	if err = wr.WriteString(f.description, f.encoding); err != nil {
-		return bytes
-	}
 
 	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
 		return bytes
