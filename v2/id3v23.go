@@ -117,19 +117,38 @@ var (
 	}
 )
 
-func ParseV23Frame(reader io.Reader) Framer {
+func ParseV23Frame(reader io.Reader, unsynchronization bool) Framer {
 	data := make([]byte, FrameHeaderSize)
-	if n, err := io.ReadFull(reader, data); n < FrameHeaderSize || err != nil {
-		return nil
+
+	if unsynchronization {
+		nextOk := false
+		for i := 0; i < FrameHeaderSize; i++ {
+			if n, err := io.ReadFull(reader, data[i:i+1]); n == 0 || err != nil {
+				return nil
+			}
+			if i >= 1 && data[i-1] == 255 && data[i] == 0 && !nextOk {
+				// we must skip this 00
+				i--
+				// but not the next one
+				nextOk = true
+			} else {
+				nextOk = false
+			}
+		}
+	} else {
+		if n, err := io.ReadFull(reader, data); n < FrameHeaderSize || err != nil {
+			return nil
+		}
 	}
 
 	id := string(data[:4])
 	t, ok := V23FrameTypeMap[id]
+	size, err := encodedbytes.NormInt(data[4:8])
+
 	if !ok {
 		return nil
 	}
 
-	size, err := encodedbytes.NormInt(data[4:8])
 	if err != nil {
 		return nil
 	}
@@ -142,8 +161,26 @@ func ParseV23Frame(reader io.Reader) Framer {
 	}
 
 	frameData := make([]byte, size)
-	if n, err := io.ReadFull(reader, frameData); n < int(size) || err != nil {
-		return nil
+
+	if unsynchronization {
+		nextOk := false
+		for i := 0; i < int(size); i++ {
+			if n, err := io.ReadFull(reader, frameData[i:i+1]); n == 0 || err != nil {
+				return nil
+			}
+			if i >= 1 && frameData[i-1] == 255 && frameData[i] == 0 && !nextOk {
+				// we must skip this 00
+				i--
+				// but not the next one
+				nextOk = true
+			} else {
+				nextOk = false
+			}
+		}
+	} else {
+		if n, err := io.ReadFull(reader, frameData); n < int(size) || err != nil {
+			return nil
+		}
 	}
 
 	return t.constructor(h, frameData)

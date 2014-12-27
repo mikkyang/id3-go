@@ -91,10 +91,28 @@ var (
 	}
 )
 
-func ParseV22Frame(reader io.Reader) Framer {
+func ParseV22Frame(reader io.Reader, unsynchronization bool) Framer {
 	data := make([]byte, V22FrameHeaderSize)
-	if n, err := io.ReadFull(reader, data); n < V22FrameHeaderSize || err != nil {
-		return nil
+
+	if unsynchronization {
+		nextOk := false
+		for i := 0; i < V22FrameHeaderSize; i++ {
+			if n, err := io.ReadFull(reader, data[i:i+1]); n == 0 || err != nil {
+				return nil
+			}
+			if i >= 1 && data[i-1] == 255 && data[i] == 0 && !nextOk {
+				// we must skip this 00
+				i--
+				// but not the next one
+				nextOk = true
+			} else {
+				nextOk = false
+			}
+		}
+	} else {
+		if n, err := io.ReadFull(reader, data); n < V22FrameHeaderSize || err != nil {
+			return nil
+		}
 	}
 
 	id := string(data[:3])
@@ -114,8 +132,26 @@ func ParseV22Frame(reader io.Reader) Framer {
 	}
 
 	frameData := make([]byte, size)
-	if n, err := io.ReadFull(reader, frameData); n < int(size) || err != nil {
-		return nil
+
+	if unsynchronization {
+		nextOk := false
+		for i := 0; i < int(size); i++ {
+			if n, err := io.ReadFull(reader, frameData[i:i+1]); n == 0 || err != nil {
+				return nil
+			}
+			if i >= 1 && frameData[i-1] == 255 && frameData[i] == 0 && !nextOk {
+				// we must skip this 00
+				i--
+				// but not the next one
+				nextOk = true
+			} else {
+				nextOk = false
+			}
+		}
+	} else {
+		if n, err := io.ReadFull(reader, frameData); n < int(size) || err != nil {
+			return nil
+		}
 	}
 
 	return t.constructor(h, frameData)
