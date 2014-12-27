@@ -10,7 +10,7 @@ import (
 
 func TestV22Frame(t *testing.T) {
 	textData := []byte{84, 84, 50, 0, 0, 13, 0, 77, 105, 99, 104, 97, 101, 108, 32, 89, 97, 110, 103}
-	frame := ParseV22Frame(bytes.NewReader(textData))
+	frame := ParseV22Frame(bytes.NewReader(textData),false)
 	textFrame, ok := frame.(*TextFrame)
 	if !ok {
 		t.Errorf("ParseV23Frame on text data returns wrong type")
