@@ -557,7 +557,7 @@ func (f ImageFrame) String() string {
 }
 
 func (f ImageFrame) Bytes() []byte {
-	bytes := make([]byte,len(f.data) )
+	bytes := make([]byte, len(f.data))
 	wr := encodedbytes.NewWriter(bytes)
 
 	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
