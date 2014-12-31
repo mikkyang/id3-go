@@ -29,6 +29,7 @@ type Tag struct {
 // Creates a new tag
 func NewTag(version byte) *Tag {
 	header := &Header{version: version}
+	encodedbytes.Init()
 
 	t := &Tag{
 		Header: header,
