@@ -30,7 +30,7 @@ type Framer interface {
 	FormatFlags() byte
 	String() string
 	Bytes() []byte
-	UsefullBytes() []byte
+	Data() []byte
 	setOwner(*Tag)
 }
 
@@ -114,10 +114,6 @@ func (f DataFrame) Bytes() []byte {
 	return f.data
 }
 
-func (f DataFrame) UsefullBytes() []byte {
-	return f.data
-}
-
 // IdFrame represents identification tags
 type IdFrame struct {
 	FrameHead
@@ -198,7 +194,7 @@ func (f IdFrame) Bytes() []byte {
 	return bytes
 }
 
-func (f IdFrame) UsefullBytes() []byte {
+func (f IdFrame) Data() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
 	wr := encodedbytes.NewWriter(bytes)
@@ -309,7 +305,7 @@ func (f TextFrame) Bytes() []byte {
 	return bytes
 }
 
-func (f TextFrame) UsefullBytes() []byte {
+func (f TextFrame) Data() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
 	wr := encodedbytes.NewWriter(bytes)
@@ -423,7 +419,7 @@ func (f DescTextFrame) Bytes() []byte {
 	return bytes
 }
 
-func (f DescTextFrame) UsefullBytes() []byte {
+func (f DescTextFrame) Data() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
 	wr := encodedbytes.NewWriter(bytes)
@@ -518,7 +514,7 @@ func (f UnsynchTextFrame) Bytes() []byte {
 	return bytes
 }
 
-func (f UnsynchTextFrame) UsefullBytes() []byte {
+func (f UnsynchTextFrame) Data() []byte {
 	var err error
 	bytes := make([]byte, f.Size())
 	wr := encodedbytes.NewWriter(bytes)
@@ -637,7 +633,7 @@ func (f ImageFrame) Bytes() []byte {
 	return bytes
 }
 
-func (f ImageFrame) UseFullBytes() []byte {
+func (f ImageFrame) Data() []byte {
 	bytes := make([]byte, len(f.data))
 	wr := encodedbytes.NewWriter(bytes)
 
