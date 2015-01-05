@@ -30,6 +30,7 @@ type Framer interface {
 	FormatFlags() byte
 	String() string
 	Bytes() []byte
+	UsefullBytes() []byte
 	setOwner(*Tag)
 }
 
@@ -113,6 +114,10 @@ func (f DataFrame) Bytes() []byte {
 	return f.data
 }
 
+func (f DataFrame) UsefullBytes() []byte {
+	return f.data
+}
+
 // IdFrame represents identification tags
 type IdFrame struct {
 	FrameHead
@@ -185,6 +190,18 @@ func (f IdFrame) Bytes() []byte {
 	if err = wr.WriteString(f.ownerIdentifier, encodedbytes.NativeEncoding); err != nil {
 		return bytes
 	}
+
+	if _, err = wr.Write(f.identifier); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f IdFrame) UsefullBytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
 
 	if _, err = wr.Write(f.identifier); err != nil {
 		return bytes
@@ -284,6 +301,18 @@ func (f TextFrame) Bytes() []byte {
 	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f TextFrame) UsefullBytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
 
 	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
@@ -394,6 +423,18 @@ func (f DescTextFrame) Bytes() []byte {
 	return bytes
 }
 
+func (f DescTextFrame) UsefullBytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
 // UnsynchTextFrame represents frames that contain unsynchronized text
 type UnsynchTextFrame struct {
 	DescTextFrame
@@ -469,6 +510,18 @@ func (f UnsynchTextFrame) Bytes() []byte {
 	if err = wr.WriteNullTermString(f.description, f.encoding); err != nil {
 		return bytes
 	}
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f UnsynchTextFrame) UsefullBytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
 
 	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
@@ -557,6 +610,34 @@ func (f ImageFrame) String() string {
 }
 
 func (f ImageFrame) Bytes() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
+
+	if err = wr.WriteByte(f.encoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.WriteString(f.mimeType, encodedbytes.NativeEncoding); err != nil {
+		return bytes
+	}
+
+	if err = wr.WriteByte(f.pictureType); err != nil {
+		return bytes
+	}
+
+	if err = wr.WriteString(f.description, f.encoding); err != nil {
+		return bytes
+	}
+
+	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f ImageFrame) UseFullBytes() []byte {
 	bytes := make([]byte, len(f.data))
 	wr := encodedbytes.NewWriter(bytes)
 
