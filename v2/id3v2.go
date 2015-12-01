@@ -279,9 +279,12 @@ func (t Tag) textFrameText(ft FrameType) string {
 
 func (t *Tag) setTextFrameText(ft FrameType, text string) {
 	if frame := t.textFrame(ft); frame != nil {
+		frame.SetEncoding("UTF-8")
 		frame.SetText(text)
 	} else {
-		t.AddFrames(NewTextFrame(ft, text))
+		f := NewTextFrame(ft, text)
+		f.SetEncoding("UTF-8")
+		t.AddFrames(f)
 	}
 }
 
