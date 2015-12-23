@@ -4,8 +4,9 @@
 package v2
 
 import (
-	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
+
+	"github.com/lotusfivestar/id3-go/encodedbytes"
 )
 
 var (

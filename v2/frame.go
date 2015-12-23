@@ -6,7 +6,8 @@ package v2
 import (
 	"errors"
 	"fmt"
-	"github.com/mikkyang/id3-go/encodedbytes"
+
+	"github.com/lotusfivestar/id3-go/encodedbytes"
 )
 
 const (
@@ -486,6 +487,23 @@ type ImageFrame struct {
 	description string
 }
 
+func NewImageFrame(ft FrameType, pictureType byte, mime_type string, desc string, image_data []byte) *ImageFrame {
+	data_frame := NewDataFrame(ft, image_data)
+	data_frame.size += uint32(1)
+
+	// ID3 standard says the string has to be null-terminated.
+	nullTermBytes := append([]byte(desc), 0x00)
+
+	image_frame := &ImageFrame{
+		DataFrame:   *data_frame, // DataFrame header
+		pictureType: pictureType, // Image Type (http://id3.org/id3v2.3.0#Attached_picture)
+		description: string(nullTermBytes),
+	}
+	image_frame.SetEncoding("UTF-8")
+	image_frame.SetMIMEType(mime_type)
+	return image_frame
+}
+
 func ParseImageFrame(head FrameHead, data []byte) Framer {
 	var err error
 	f := new(ImageFrame)
@@ -503,6 +521,7 @@ func ParseImageFrame(head FrameHead, data []byte) Framer {
 	if f.pictureType, err = rd.ReadByte(); err != nil {
 		return nil
 	}
+	fmt.Println(f.pictureType)
 
 	if f.description, err = rd.ReadNullTermString(f.encoding); err != nil {
 		return nil
