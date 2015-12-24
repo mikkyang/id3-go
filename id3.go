@@ -5,9 +5,10 @@ package id3
 
 import (
 	"errors"
-	"github.com/mikkyang/id3-go/v1"
-	"github.com/mikkyang/id3-go/v2"
 	"os"
+
+	"github.com/lotusfivestar/id3-go/v1"
+	"github.com/lotusfivestar/id3-go/v2"
 )
 
 const (

@@ -4,9 +4,10 @@
 package v1
 
 import (
-	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"os"
+
+	v2 "github.com/lotusfivestar/id3-go/v2"
 )
 
 const (

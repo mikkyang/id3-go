@@ -4,8 +4,9 @@
 package v2
 
 import (
-	"github.com/mikkyang/id3-go/encodedbytes"
 	"io"
+
+	"github.com/lotusfivestar/id3-go/encodedbytes"
 )
 
 var (
@@ -104,6 +105,7 @@ var (
 		"TXXX": FrameType{id: "TXXX", description: "User defined text information frame", constructor: ParseDescTextFrame},
 		"UFID": FrameType{id: "UFID", description: "Unique file identifier", constructor: ParseIdFrame},
 		"USER": FrameType{id: "USER", description: "Terms of use", constructor: ParseDataFrame},
+		"TCMP": FrameType{id: "TCMP", description: "Part of a compilation (iTunes extension)", constructor: ParseTextFrame},
 		"USLT": FrameType{id: "USLT", description: "Unsychronized lyric/text transcription", constructor: ParseUnsynchTextFrame},
 		"WCOM": FrameType{id: "WCOM", description: "Commercial information", constructor: ParseDataFrame},
 		"WCOP": FrameType{id: "WCOP", description: "Copyright/Legal information", constructor: ParseDataFrame},

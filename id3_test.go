@@ -5,11 +5,12 @@ package id3
 
 import (
 	"bytes"
-	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	v2 "github.com/lotusfivestar/id3-go/v2"
 )
 
 const (
