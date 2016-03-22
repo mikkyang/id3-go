@@ -36,18 +36,12 @@ func NewTag(version byte) *Tag {
 		dirty:  false,
 	}
 
-	switch t.version {
-	case 2:
+	if t.version == 2 {
 		t.commonMap = V22CommonFrame
 		t.frameConstructor = ParseV22Frame
 		t.frameHeaderSize = V22FrameHeaderSize
 		t.frameBytesConstructor = V22Bytes
-	case 3:
-		t.commonMap = V23CommonFrame
-		t.frameConstructor = ParseV23Frame
-		t.frameHeaderSize = FrameHeaderSize
-		t.frameBytesConstructor = V23Bytes
-	default:
+	} else {
 		t.commonMap = V23CommonFrame
 		t.frameConstructor = ParseV23Frame
 		t.frameHeaderSize = FrameHeaderSize
