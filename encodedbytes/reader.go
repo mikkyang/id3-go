@@ -4,6 +4,7 @@
 package encodedbytes
 
 import (
+	"errors"
 	"io"
 )
 
@@ -72,6 +73,10 @@ func (r *Reader) ReadRestString(encoding byte) (string, error) {
 // Read a null terminated string of specified encoding
 func (r *Reader) ReadNullTermString(encoding byte) (string, error) {
 	atIndex, afterIndex := nullIndex(r.data[r.index:], encoding)
+	if atIndex == -1 {
+		return "", errors.New("ReadNullTermString: tag malformed. Expecting null terminator in string, but none found.")
+	}
+
 	b, err := r.ReadNumBytes(afterIndex)
 	if err != nil {
 		return "", err
