@@ -30,6 +30,7 @@ type Framer interface {
 	FormatFlags() byte
 	String() string
 	Bytes() []byte
+	Data() []byte
 	setOwner(*Tag)
 }
 
@@ -193,6 +194,18 @@ func (f IdFrame) Bytes() []byte {
 	return bytes
 }
 
+func (f IdFrame) Data() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
+
+	if _, err = wr.Write(f.identifier); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
 // TextFramer represents frames that contain encoded text
 type TextFramer interface {
 	Framer
@@ -284,6 +297,18 @@ func (f TextFrame) Bytes() []byte {
 	if err = wr.WriteByte(f.encoding); err != nil {
 		return bytes
 	}
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f TextFrame) Data() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
 
 	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
@@ -394,6 +419,18 @@ func (f DescTextFrame) Bytes() []byte {
 	return bytes
 }
 
+func (f DescTextFrame) Data() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
 // UnsynchTextFrame represents frames that contain unsynchronized text
 type UnsynchTextFrame struct {
 	DescTextFrame
@@ -469,6 +506,18 @@ func (f UnsynchTextFrame) Bytes() []byte {
 	if err = wr.WriteNullTermString(f.description, f.encoding); err != nil {
 		return bytes
 	}
+
+	if err = wr.WriteString(f.text, f.encoding); err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f UnsynchTextFrame) Data() []byte {
+	var err error
+	bytes := make([]byte, f.Size())
+	wr := encodedbytes.NewWriter(bytes)
 
 	if err = wr.WriteString(f.text, f.encoding); err != nil {
 		return bytes
@@ -576,6 +625,17 @@ func (f ImageFrame) Bytes() []byte {
 	if err = wr.WriteString(f.description, f.encoding); err != nil {
 		return bytes
 	}
+
+	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
+		return bytes
+	}
+
+	return bytes
+}
+
+func (f ImageFrame) Data() []byte {
+	bytes := make([]byte, len(f.data))
+	wr := encodedbytes.NewWriter(bytes)
 
 	if n, err := wr.Write(f.data); n < len(f.data) || err != nil {
 		return bytes
