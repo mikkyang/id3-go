@@ -46,6 +46,23 @@ type File struct {
 	file         *os.File
 }
 
+// Parses an open file 
+func Parse(file *os.File) (*File, error) {
+  res := &File{file: file}
+
+	  if v2Tag := v2.ParseTag(file); v2Tag != nil {
+		  res.Tagger = v2Tag
+		  res.originalSize = v2Tag.Size()
+	  } else if v1Tag := v1.ParseTag(file); v1Tag != nil {
+		  res.Tagger = v1Tag
+	  } else {
+		  // Add a new tag if none exists
+		  res.Tagger = v2.NewTag(LatestVersion)
+	  }
+
+	return res, nil
+}
+
 // Opens a new tagged file
 func Open(name string) (*File, error) {
 	fi, err := os.OpenFile(name, os.O_RDWR, 0666)
@@ -53,19 +70,12 @@ func Open(name string) (*File, error) {
 		return nil, err
 	}
 
-	file := &File{file: fi}
+  file, err := Parse(fi);
+  if err != nil {
+    return nil, err
+  }
 
-	if v2Tag := v2.ParseTag(fi); v2Tag != nil {
-		file.Tagger = v2Tag
-		file.originalSize = v2Tag.Size()
-	} else if v1Tag := v1.ParseTag(fi); v1Tag != nil {
-		file.Tagger = v1Tag
-	} else {
-		// Add a new tag if none exists
-		file.Tagger = v2.NewTag(LatestVersion)
-	}
-
-	return file, nil
+  return file, nil
 }
 
 // Saves any edits to the tagged file
