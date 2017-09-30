@@ -4,6 +4,7 @@
 package encodedbytes
 
 import (
+	"errors"
 	"io"
 )
 
@@ -77,6 +78,9 @@ func (r *Reader) ReadNullTermString(encoding byte) (string, error) {
 		return "", err
 	}
 
+	if -1 == atIndex {
+		return "", errors.New("could not read null terminated string")
+	}
 	return Decoders[encoding].ConvertString(string(b[:atIndex]))
 }
 
