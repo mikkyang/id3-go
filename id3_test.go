@@ -17,17 +17,17 @@ const (
 )
 
 func TestParse(t *testing.T) {
-  file, err := os.OpenFile("test.mp3", os.O_RDWR, 0666)
-  if err != nil {
+	file, err := os.OpenFile("test.mp3", os.O_RDWR, 0666)
+	if err != nil {
 		t.Errorf("Parse: unable to open file")
 	}
 
-  tagger, err := Parse(file);
-  if err != nil {
-    t.Errorf("Parse: could not parse")
-  }
+	tagger, err := Parse(file)
+	if err != nil {
+		t.Errorf("Parse: could not parse")
+	}
 
-  tag, ok := tagger.Tagger.(*v2.Tag)
+	tag, ok := tagger.Tagger.(*v2.Tag)
 	if !ok {
 		t.Errorf("Parse: incorrect tagger type")
 	}
