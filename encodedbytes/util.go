@@ -32,12 +32,16 @@ var (
 	Encoders = make([]*iconv.Converter, len(EncodingMap))
 )
 
-func init() {
+func Init() {
 	n := EncodingForIndex(NativeEncoding)
 	for i, e := range EncodingMap {
 		Decoders[i], _ = iconv.NewConverter(e.Name, n)
 		Encoders[i], _ = iconv.NewConverter(n, e.Name)
 	}
+}
+
+func init() {
+	Init()
 }
 
 // Form an integer from concatenated bits
