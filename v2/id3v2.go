@@ -17,7 +17,7 @@ const (
 // Tag represents an ID3v2 tag
 type Tag struct {
 	*Header
-	frames                map[string][]Framer
+	frames                []Framer
 	padding               uint
 	commonMap             map[string]FrameType
 	frameHeaderSize       int
@@ -32,7 +32,7 @@ func NewTag(version byte) *Tag {
 
 	t := &Tag{
 		Header: header,
-		frames: make(map[string][]Framer),
+		frames: make([]Framer, 0, 5),
 		dirty:  false,
 	}
 
@@ -77,8 +77,7 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 			break
 		}
 
-		id := frame.Id()
-		t.frames[id] = append(t.frames[id], frame)
+		t.frames = append(t.frames, frame)
 		frame.setOwner(t)
 
 		size -= t.frameHeaderSize + int(frame.Size())
@@ -118,13 +117,11 @@ func (t Tag) Bytes() []byte {
 	data := make([]byte, t.Size())
 
 	index := 0
-	for _, v := range t.frames {
-		for _, f := range v {
-			size := t.frameHeaderSize + int(f.Size())
-			copy(data[index:index+size], t.frameBytesConstructor(f))
+	for _, f := range t.frames {
+		size := t.frameHeaderSize + int(f.Size())
+		copy(data[index:index+size], t.frameBytesConstructor(f))
 
-			index += size
-		}
+		index += size
 	}
 
 	return append(t.Header.Bytes(), data...)
@@ -141,29 +138,22 @@ func (t Tag) AllFrames() []Framer {
 	m := len(t.frames)
 	frames := make([]Framer, m)
 
-	i := 0
-	for _, frameSlice := range t.frames {
-		if i >= m {
-			frames = append(frames, frameSlice...)
-		}
-
-		n := copy(frames[i:], frameSlice)
-		i += n
-		if n < len(frameSlice) {
-			frames = append(frames, frameSlice[n:]...)
-		}
-	}
+	copy(frames, t.frames)
 
 	return frames
 }
 
 // All frames with specified ID
 func (t Tag) Frames(id string) []Framer {
-	if frames, ok := t.frames[id]; ok && frames != nil {
-		return frames
+	rv := make([]Framer, 0, 1)
+
+	for _, f := range t.frames {
+		if f.Id() == id {
+			rv = append(rv, f)
+		}
 	}
 
-	return []Framer{}
+	return rv
 }
 
 // First frame with specified ID
@@ -183,13 +173,18 @@ func (t *Tag) DeleteFrames(id string) []Framer {
 	}
 
 	diff := 0
-	for _, frame := range frames {
-		frame.setOwner(nil)
-		diff += t.frameHeaderSize + int(frame.Size())
+	i := 0
+	for i < len(t.frames) {
+		frame := t.frames[i]
+		if frame.Id() != id {
+			i++
+		} else {
+			frame.setOwner(nil)
+			diff += t.frameHeaderSize + int(frame.Size())
+			t.frames = append(t.frames[:i], t.frames[i+1:]...)
+		}
 	}
 	t.changeSize(-diff)
-
-	delete(t.frames, id)
 
 	return frames
 }
@@ -199,8 +194,7 @@ func (t *Tag) AddFrames(frames ...Framer) {
 	for _, frame := range frames {
 		t.changeSize(t.frameHeaderSize + int(frame.Size()))
 
-		id := frame.Id()
-		t.frames[id] = append(t.frames[id], frame)
+		t.frames = append(t.frames, frame)
 		frame.setOwner(t)
 	}
 }
