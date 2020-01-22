@@ -7,6 +7,7 @@ import (
 	v2 "github.com/mikkyang/id3-go/v2"
 	"io"
 	"os"
+	"strings"
 )
 
 const (
@@ -54,12 +55,13 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 		return nil
 	}
 
+	cutset := string(rune(0))
 	return &Tag{
-		title:   string(data[3:33]),
-		artist:  string(data[33:63]),
-		album:   string(data[63:93]),
-		year:    string(data[93:97]),
-		comment: string(data[97:127]),
+		title:   strings.TrimRight(string(data[3:33]), cutset),
+		artist:  strings.TrimRight(string(data[33:63]), cutset),
+		album:   strings.TrimRight(string(data[63:93]), cutset),
+		year:    strings.TrimRight(string(data[93:97]), cutset),
+		comment: strings.TrimRight(string(data[97:127]), cutset),
 		genre:   data[127],
 		dirty:   false,
 	}
