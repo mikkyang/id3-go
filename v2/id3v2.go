@@ -21,7 +21,7 @@ type Tag struct {
 	padding               uint
 	commonMap             map[string]FrameType
 	frameHeaderSize       int
-	frameConstructor      func(io.Reader) Framer
+	frameConstructor      func(io.Reader, bool) Framer
 	frameBytesConstructor func(Framer) []byte
 	dirty                 bool
 }
@@ -71,7 +71,7 @@ func ParseTag(readSeeker io.ReadSeeker) *Tag {
 	var frame Framer
 	size := int(t.size)
 	for size > 0 {
-		frame = t.frameConstructor(readSeeker)
+		frame = t.frameConstructor(readSeeker, header.unsynchronization)
 
 		if frame == nil {
 			break
