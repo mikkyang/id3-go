@@ -5,7 +5,7 @@ package id3
 
 import (
 	"bytes"
-	v2 "github.com/mikkyang/id3-go/v2"
+	v2 "github.com/e2u/id3-go/v2"
 	"io"
 	"io/ioutil"
 	"os"
@@ -15,6 +15,54 @@ import (
 const (
 	testFile = "test.mp3"
 )
+
+func TestParse(t *testing.T) {
+	file, err := os.OpenFile("test.mp3", os.O_RDWR, 0666)
+	if err != nil {
+		t.Errorf("Parse: unable to open file")
+	}
+
+	tagger, err := Parse(file)
+	if err != nil {
+		t.Errorf("Parse: could not parse")
+	}
+
+	tag, ok := tagger.Tagger.(*v2.Tag)
+	if !ok {
+		t.Errorf("Parse: incorrect tagger type")
+	}
+
+	if s := tag.Artist(); s != "Paloalto\x00" {
+		t.Errorf("Parse: incorrect artist, %v", s)
+	}
+
+	if s := tag.Title(); s != "Nice Life (Feat. Basick)" {
+		t.Errorf("Parse: incorrect title, %v", s)
+	}
+
+	if s := tag.Album(); s != "Chief Life" {
+		t.Errorf("Parse: incorrect album, %v", s)
+	}
+
+	parsedFrame := tagger.Frame("COMM")
+	resultFrame, ok := parsedFrame.(*v2.UnsynchTextFrame)
+	if !ok {
+		t.Error("Couldn't cast frame")
+	}
+
+	expected := "✓"
+	actual := resultFrame.Description()
+
+	if expected != actual {
+		t.Errorf("Expected %q, got %q", expected, actual)
+	}
+
+	actual = resultFrame.Text()
+	if expected != actual {
+		t.Errorf("Expected %q, got %q", expected, actual)
+	}
+
+}
 
 func TestOpen(t *testing.T) {
 	file, err := Open(testFile)

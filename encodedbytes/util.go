@@ -6,7 +6,6 @@ package encodedbytes
 import (
 	"bytes"
 	"errors"
-	iconv "github.com/djimenez/iconv-go"
 )
 
 const (
@@ -28,16 +27,11 @@ var (
 		{Name: "UTF-16BE", NullLength: 2},
 		{Name: "UTF-8", NullLength: 1},
 	}
-	Decoders = make([]*iconv.Converter, len(EncodingMap))
-	Encoders = make([]*iconv.Converter, len(EncodingMap))
+
 )
 
 func init() {
-	n := EncodingForIndex(NativeEncoding)
-	for i, e := range EncodingMap {
-		Decoders[i], _ = iconv.NewConverter(e.Name, n)
-		Encoders[i], _ = iconv.NewConverter(n, e.Name)
-	}
+
 }
 
 // Form an integer from concatenated bits
@@ -138,15 +132,6 @@ func nullIndex(data []byte, encoding byte) (atIndex, afterIndex int) {
 }
 
 func EncodedDiff(newEncoding byte, newString string, oldEncoding byte, oldString string) (int, error) {
-	newEncodedString, err := Encoders[newEncoding].ConvertString(newString)
-	if err != nil {
-		return 0, err
-	}
 
-	oldEncodedString, err := Encoders[oldEncoding].ConvertString(oldString)
-	if err != nil {
-		return 0, err
-	}
-
-	return len(newEncodedString) - len(oldEncodedString), nil
+	return 0, nil
 }

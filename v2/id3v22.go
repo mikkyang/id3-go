@@ -4,7 +4,7 @@
 package v2
 
 import (
-	"github.com/mikkyang/id3-go/encodedbytes"
+	"github.com/e2u/id3-go/encodedbytes"
 	"io"
 )
 

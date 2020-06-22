@@ -1,6 +1,6 @@
 # id3
 
-[![build status](https://travis-ci.org/mikkyang/id3-go.svg)](https://travis-ci.org/mikkyang/id3-go)
+[![build status](https://travis-ci.org/e2u/id3-go.svg)](https://travis-ci.org/e2u/id3-go)
 
 ID3 library for Go.
 
@@ -14,26 +14,26 @@ Supported formats:
 
 The platform ($GOROOT/bin) "go get" tool is the best method to install.
 
-    go get github.com/mikkyang/id3-go
+    go get github.com/e2u/id3-go
 
 This downloads and installs the package into your $GOPATH. If you only want to
 recompile, use "go install".
 
-    go install github.com/mikkyang/id3-go
+    go install github.com/e2u/id3-go
 
 # Usage
 
 An import allows access to the package.
 
     import (
-        id3 "github.com/mikkyang/id3-go"
+        id3 "github.com/e2u/id3-go"
     )
 
 Version specific details can be accessed through the subpackages.
 
     import (
-        "github.com/mikkyang/id3-go/v1"
-        "github.com/mikkyang/id3-go/v2"
+        "github.com/e2u/id3-go/v1"
+        "github.com/e2u/id3-go/v2"
     )
 
 # Quick Start

@@ -6,7 +6,7 @@ package v2
 import (
 	"errors"
 	"fmt"
-	"github.com/mikkyang/id3-go/encodedbytes"
+	"github.com/e2u/id3-go/encodedbytes"
 )
 
 const (
