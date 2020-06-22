@@ -67,7 +67,7 @@ func (r *Reader) ReadRestString(encoding byte) (string, error) {
 		return "", err
 	}
 
-	return Decoders[encoding].ConvertString(string(b))
+	return string(b), nil
 }
 
 // Read a null terminated string of specified encoding
@@ -81,7 +81,7 @@ func (r *Reader) ReadNullTermString(encoding byte) (string, error) {
 	if -1 == atIndex {
 		return "", errors.New("could not read null terminated string")
 	}
-	return Decoders[encoding].ConvertString(string(b[:atIndex]))
+	return string(b[:atIndex]), nil
 }
 
 func NewReader(b []byte) *Reader { return &Reader{b, 0} }
