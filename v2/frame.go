@@ -186,6 +186,10 @@ func (f IdFrame) Bytes() []byte {
 		return bytes
 	}
 
+	if err = wr.WriteByte(0); err != nil {
+		return bytes
+	}
+
 	if _, err = wr.Write(f.identifier); err != nil {
 		return bytes
 	}
