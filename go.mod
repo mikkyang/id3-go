@@ -1,4 +1,4 @@
-module id3-go
+module github.com/BaoShuaiying/id3-go
 
 go 1.20
 
